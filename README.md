@@ -1,2 +1,2 @@
 # Portfolio
-https://tyulyukov.netlify.app/
+https://tyulyukov.com/
