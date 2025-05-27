@@ -36,7 +36,7 @@ export const profile = {
   ],
   experience: [
     {
-      logo: '/src/assets/sda.svg',
+      logo: '/sda.svg',
       company: 'SDA',
       role: 'Node.js Developer',
       period: 'Nov 2024 — present',
@@ -51,7 +51,7 @@ export const profile = {
       )
     },
     {
-      logo: '/src/assets/cowchain.png',
+      logo: '/cowchain.png',
       company: 'Cowchain',
       role: 'Node.js Developer',
       period: 'Aug 2024 — Nov 2024',
@@ -65,7 +65,7 @@ export const profile = {
       )
     },
     {
-      logo: '/src/assets/lab325.png',
+      logo: '/lab325.png',
       company: 'LAB325',
       role: 'Node.js Developer',
       period: 'Apr 2023 — Aug 2024',
@@ -79,7 +79,7 @@ export const profile = {
       )
     },
     {
-      logo: '/src/assets/gribble.svg',
+      logo: '/gribble.svg',
       company: 'Gribble',
       role: 'Full-stack Developer',
       period: 'Aug 2022 — Mar 2023',

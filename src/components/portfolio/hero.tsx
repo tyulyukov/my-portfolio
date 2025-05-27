@@ -21,7 +21,7 @@ export default function Hero() {
           }}
         />
         <img
-          src='/src/assets/avatar.webp'
+          src='/avatar.webp'
           alt='avatar'
           className='relative h-40 w-40 rounded-full md:h-52 md:w-52'
         />
