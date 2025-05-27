@@ -31,8 +31,5 @@ export default defineConfig({
   server: {
     host: config.server.host,
     port: config.server.port
-  },
-  build: {
-    assetsInlineLimit: 0
   }
 });
