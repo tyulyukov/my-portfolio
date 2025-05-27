@@ -23,6 +23,7 @@
     "test:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@codaworks/react-glow": "^1.0.6",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",

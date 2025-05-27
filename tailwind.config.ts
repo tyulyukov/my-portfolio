@@ -1,3 +1,5 @@
+// @ts-ignore
+import glow from '@codaworks/react-glow/tailwind';
 import { type Config } from 'tailwindcss';
 
 export default {
@@ -74,5 +76,5 @@ export default {
       }
     }
   },
-  plugins: [require('tailwindcss-animate')]
+  plugins: [glow, require('tailwindcss-animate')]
 } satisfies Config;

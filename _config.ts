@@ -1,13 +1,13 @@
 const config = {
   metadata: {
-    title: 'Vite React.js TypeScript & Shadcn/ui — Template',
+    title: 'Maksym Tyulyukov - Portfolio',
     description:
-      'Boilerplate template designed to quickly bootstrap a React.js Web App, SPA, website or landing page with TypeScript, Shadcn/ui, TailwindCSS, Vite, SWC, ESLint, Husky and much more in just 30 seconds.',
+      'Professional portfolio showcasing my skills and experience as a Node.js developer specializing in backend architecture and distributed systems.',
     keywords:
-      'react.js, react.js-template, react.js-boilerplate, typescript, shadcn/ui, tailwindcss, vite, swc, eslint, prettier, husky, commitlint, lint-staged'
+      'node.js, backend, developer, tyulyukov, maksym, aws, redis, postgresql, mongodb, typescript, portfolio, microservices'
   },
   server: {
-    host: 'localhost',
+    host: true,
     port: 3000
   }
 };
