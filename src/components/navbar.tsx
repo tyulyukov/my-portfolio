@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import Logo from './logo';
@@ -28,7 +29,9 @@ export default function Navbar() {
           href='https://cdn.tyulyukov.com/cv.pdf'
           className='transition-colors duration-200 hover:text-primary'
         >
-          cv
+          <span className='inline-flex items-center gap-1'>
+            cv <ExternalLink className='h-[0.9rem] w-[0.9rem] opacity-70' />
+          </span>
         </a>
       </nav>
 
