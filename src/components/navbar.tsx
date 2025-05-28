@@ -25,7 +25,7 @@ export default function Navbar() {
           skills
         </a>
         <a
-          href='https://cv.tyulyukov.com'
+          href='https://cdn.tyulyukov.com/cv.pdf'
           className='transition-colors duration-200 hover:text-primary'
         >
           cv
