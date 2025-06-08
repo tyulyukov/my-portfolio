@@ -69,7 +69,6 @@
   }
 }
 
-/* ==== fancy purple blobs ==== */
 @layer utilities {
   .bg-fluid {
     @apply relative overflow-hidden;
@@ -99,7 +98,7 @@
     right: -200px;
   }
 }
-/* card hover glow */
+
 @keyframes card-glow {
   0%,
   100% {
