@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -12,21 +12,21 @@ import ThemeToggle from './ui/theme-toggle';
 export default function Navbar() {
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : 'auto';
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [open]);
-
-  useEffect(() => {
-    const md = 768;
-    const onResize = () => {
-      if (window.innerWidth >= md) setOpen(false);
-    };
-    window.addEventListener('resize', onResize, { passive: true });
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
+  // useEffect(() => {
+  //   document.body.style.overflow = open ? 'hidden' : 'auto';
+  //   return () => {
+  //     document.body.style.overflow = 'auto';
+  //   };
+  // }, [open]);
+  //
+  // useEffect(() => {
+  //   const md = 768;
+  //   const onResize = () => {
+  //     if (window.innerWidth >= md) setOpen(false);
+  //   };
+  //   window.addEventListener('resize', onResize, { passive: true });
+  //   return () => window.removeEventListener('resize', onResize);
+  // }, []);
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <>

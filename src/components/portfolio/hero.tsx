@@ -30,10 +30,8 @@ export default function Hero() {
       {/* copy */}
       <div className='max-w-3xl space-y-6 text-center'>
         <p className='text-sm text-muted-foreground md:text-base'>
-          Hello! I'm {profile.name} 🇺🇦 &nbsp;
-          {Math.ceil(
-            (new Date().getTime() - new Date('2022-08-01').getTime()) / (1000 * 60 * 60 * 24 * 365)
-          )}
+          Hello! I&#39;m {profile.name} 🇺🇦 &nbsp;
+          {Math.ceil((Date.now() - new Date('2022-08-01').getTime()) / (1000 * 60 * 60 * 24 * 365))}
           + yrs in industry
         </p>
 
