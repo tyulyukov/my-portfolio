@@ -48,7 +48,7 @@ export default function Hero() {
           {/* mobile → 3 tidy lines */}
           <span className='block text-4xl md:hidden'>a backend dev who</span>
           <span className='block text-4xl md:hidden'>keeps your app</span>
-          <span className='block bg-gradient-to-r from-[#b295ff] via-[#8455ff] to-[#4020d6] bg-clip-text text-4xl text-transparent md:hidden'>
+          <span className='block bg-gradient-to-r from-[#b295ff] via-[#8455ff] to-[#4020d6] bg-clip-text pb-0.5 text-4xl text-transparent md:hidden'>
             running at scale.
           </span>
         </h1>
