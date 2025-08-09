@@ -28,7 +28,7 @@ export default function NebulaCard({
   const card = (
     <article
       className={cn(
-        'relative flex h-full flex-col rounded-3xl border border-white/10 bg-[#763CAC]/30 p-8 transition-all',
+        'relative flex h-full flex-col rounded-3xl border border-white/10 bg-[#763CAC]/30 p-8 transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(139,92,246,0.5)]',
         glow && 'glow:border-glow/80 glow:bg-[#8b5cf6]/20 glow:shadow-[0_0_24px_var(--glow)]',
         className
       )}

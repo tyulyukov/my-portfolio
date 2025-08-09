@@ -24,6 +24,8 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+    --gradient-start: #f5f3ff;
+    --gradient-end: #e0e7ff;
   }
 
   .dark {
@@ -46,6 +48,8 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+    --gradient-start: #111827;
+    --gradient-end: #312e81;
   }
 }
 
@@ -62,10 +66,29 @@
 
   body {
     @apply bg-background text-foreground;
+    background: linear-gradient(-45deg, var(--gradient-start), var(--gradient-end));
+    background-size: 400% 400%;
+    animation: gradient-shift 30s ease infinite;
+    scrollbar-color: hsl(var(--primary)) transparent;
+    scrollbar-width: thin;
   }
 
   #root {
     @apply flex h-full w-full flex-col;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--primary));
+    border-radius: 9999px;
   }
 }
 
@@ -109,6 +132,31 @@
   }
 }
 
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 .nav-link {
-  @apply transition-colors duration-200 hover:text-primary;
+  @apply relative pb-1 transition-colors duration-200 hover:text-primary;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background-color: hsl(var(--primary));
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
 }
