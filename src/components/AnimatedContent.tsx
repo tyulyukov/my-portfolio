@@ -99,7 +99,7 @@ const AnimatedContent: React.FC<AnimatedContentProperties> = ({
 
     const st = ScrollTrigger.create({
       trigger: element,
-      scroller: scrollerTarget || globalThis,
+      scroller: scrollerTarget || undefined,
       start: `top ${startPct}%`,
       once: true,
       onEnter: () => tl.play()
