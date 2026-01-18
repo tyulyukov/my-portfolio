@@ -1,90 +1,56 @@
-import React, { useState } from 'react';
+import type { DockItemData } from '@/components/Dock';
 
-import { ExternalLink } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Briefcase, Code2, ExternalLink, FileText, User } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import Dock from '@/components/Dock';
 
-import Logo from './logo';
-import BurgerIcon from './ui/burger-icon';
-import ThemeToggle from './ui/theme-toggle';
+const scrollToSection = (id: string) => {
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
+const navItems: DockItemData[] = [
+  {
+    icon: <User className='h-5 w-5 text-white/80' />,
+    label: 'About',
+    onClick: () => scrollToSection('about')
+  },
+  {
+    icon: <Briefcase className='h-5 w-5 text-white/80' />,
+    label: 'Experience',
+    onClick: () => scrollToSection('work-exp')
+  },
+  {
+    icon: <Code2 className='h-5 w-5 text-white/80' />,
+    label: 'Skills',
+    onClick: () => scrollToSection('skills')
+  },
+  {
+    icon: (
+      <div className='relative'>
+        <FileText className='h-5 w-5 text-white/80' />
+        <ExternalLink className='absolute -right-1 -top-1 h-2.5 w-2.5 text-violet-400' />
+      </div>
+    ),
+    label: 'CV',
+    onClick: () => window.open('https://cdn.tyulyukov.com/cv.pdf', '_blank')
+  }
+];
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
-
-  // useEffect(() => {
-  //   document.body.style.overflow = open ? 'hidden' : 'auto';
-  //   return () => {
-  //     document.body.style.overflow = 'auto';
-  //   };
-  // }, [open]);
-  //
-  // useEffect(() => {
-  //   const md = 768;
-  //   const onResize = () => {
-  //     if (window.innerWidth >= md) setOpen(false);
-  //   };
-  //   window.addEventListener('resize', onResize, { passive: true });
-  //   return () => window.removeEventListener('resize', onResize);
-  // }, []);
-
-  const NavLinks = ({ onClick }: { onClick?: () => void }) => (
-    <>
-      <a href='#about' className='nav-link' onClick={onClick}>
-        about
-      </a>
-      <a href='#work-exp' className='nav-link' onClick={onClick}>
-        work experience
-      </a>
-      <a href='#skills' className='nav-link' onClick={onClick}>
-        skills
-      </a>
-      <a
-        href='https://cdn.tyulyukov.com/cv.pdf'
-        target='_blank'
-        rel='noreferrer'
-        className='nav-link inline-flex items-center gap-1'
-        onClick={onClick}
-      >
-        cv <ExternalLink className='h-[0.9rem] w-[0.9rem] opacity-70' />
-      </a>
-    </>
-  );
-
   return (
-    <>
-      <header className='fixed top-0 z-30 flex h-16 w-full items-center justify-between bg-background/80 px-5 py-1 backdrop-blur-md'>
-        <Link to='/' className='text-primary'>
-          <Logo className='h-9 w-auto p-2' />
-        </Link>
-
-        <nav className='hidden gap-8 text-sm font-medium md:flex'>
-          <NavLinks />
-        </nav>
-
-        <div className='flex items-center gap-4'>
-          <ThemeToggle />
-          <button
-            aria-label={open ? 'close menu' : 'open menu'}
-            onClick={() => setOpen((o) => !o)}
-            className='rounded p-2 text-foreground/80 transition-colors hover:text-primary md:hidden'
-          >
-            <BurgerIcon open={open} />
-          </button>
-        </div>
-      </header>
-
-      <div
-        className={cn(
-          'fixed inset-0 z-20 flex flex-col items-center justify-center gap-12',
-          'bg-background/90 backdrop-blur-lg transition-transform duration-500',
-          open ? 'translate-y-0' : '-translate-y-full'
-        )}
-      >
-        <nav className='flex flex-col items-center gap-8 text-3xl font-extrabold'>
-          <NavLinks onClick={() => setOpen(false)} />
-        </nav>
-      </div>
-    </>
+    <nav className='fixed inset-x-0 bottom-0 z-50 flex items-end justify-center pb-6'>
+      <Dock
+        items={navItems}
+        baseItemSize={48}
+        magnification={64}
+        distance={120}
+        panelHeight={56}
+        className='border-white/10 bg-black/80 backdrop-blur-xl'
+        spring={{ mass: 0.1, stiffness: 200, damping: 15 }}
+      />
+    </nav>
   );
 }

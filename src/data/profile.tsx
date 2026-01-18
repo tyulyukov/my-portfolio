@@ -6,7 +6,7 @@ export const profile = {
   // title: 'software engineer',
   // tagline: 'backend developer (node.js) — 3 yrs exp.',
   summary:
-    'Passionate about clean architecture & high-load distributed systems... Ha-ha, did you believe in this non-sense? i love playing 8-pool 🎱 while listening to an american rap 🇺🇸🦅 after hitting some gym 💪🏻️. Beat it!',
+    'Obsessed with clean architecture, high-load distributed systems, and building AI-powered solutions. When not optimizing database queries or deploying microservices, you can find me playing 8-ball 🎱, hitting the gym 💪🏻, or experimenting with LLMs.',
   // currentCompany: 'SDA',
   contacts: [
     {
@@ -36,10 +36,24 @@ export const profile = {
   ],
   experience: [
     {
+      logo: '/obrio.svg',
+      company: 'OBRIO',
+      role: 'Back-End Engineer',
+      period: 'Aug 2025 — present',
+      blurb: (
+        <>
+          Working in MarTech, developing and maintaining marketing automation solutions that power
+          the growth of <b>Nebula</b> — the #1 astrology app with <b>60M+ users</b> worldwide.
+          Building high-performance systems for user acquisition, analytics pipelines, and campaign
+          orchestration at scale.
+        </>
+      )
+    },
+    {
       logo: '/sda.svg',
       company: 'SDA',
       role: 'Node.js Developer',
-      period: 'Nov 2024 — present',
+      period: 'Nov 2024 — Jul 2025',
       blurb: (
         <>
           Re-architected a legacy monolith into event-driven micro-services on AWS (EKS + SQS +
@@ -98,10 +112,18 @@ export const profile = {
     'Nest.js',
     'TypeScript',
     'PostgreSQL',
+    'MongoDB',
+    'Prisma',
+    'TypeORM',
     'Redis',
-    'Docker',
-    'AWS',
+    'SocketIO',
     'RabbitMQ',
-    'MongoDB'
+    'BullMQ',
+    'ElasticSearch',
+    'Firebase',
+    'AWS',
+    'Docker',
+    'Kubernetes',
+    'Git'
   ]
 } as const;

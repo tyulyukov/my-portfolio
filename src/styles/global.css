@@ -5,47 +5,47 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 0 0% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 9%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 0 0% 83%;
   }
 }
 
@@ -61,7 +61,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
 
   #root {
@@ -70,45 +70,27 @@
 }
 
 @layer utilities {
-  .bg-fluid {
-    @apply relative overflow-hidden;
+  .text-gradient {
+    @apply bg-gradient-to-r from-white via-white/80 to-white/60 bg-clip-text text-transparent;
   }
-  .bg-fluid::before,
-  .bg-fluid::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    /*filter: blur(100px);*/
-    opacity: 0.35;
-    mix-blend-mode: screen;
-    pointer-events: none;
-  }
-  .bg-fluid::before {
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle at 30% 30%, #a855f7, transparent 70%);
-    top: -200px;
-    left: -150px;
-  }
-  .bg-fluid::after {
-    width: 700px;
-    height: 700px;
-    background: radial-gradient(circle at 70% 70%, #7c3aed, transparent 70%);
-    bottom: -250px;
-    right: -200px;
-  }
-}
 
-@keyframes card-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
+  .text-gradient-accent {
+    @apply bg-gradient-to-r from-blue-400 via-violet-400 to-purple-400 bg-clip-text text-transparent;
   }
-  50% {
-    box-shadow: 0 0 40px 5px rgba(168, 85, 247, 0.6);
+
+  .border-gradient {
+    background: linear-gradient(to right, hsl(var(--border)), transparent);
+  }
+
+  .glow-text {
+    text-shadow: 0 0 80px rgba(255, 255, 255, 0.15);
   }
 }
 
 .nav-link {
-  @apply transition-colors duration-200 hover:text-primary;
+  @apply text-muted-foreground transition-colors duration-200 hover:text-foreground;
+}
+
+::selection {
+  @apply bg-white/20;
 }
