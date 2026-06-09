@@ -25,7 +25,7 @@ function FullScreenWindow({
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.95, opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className='absolute inset-0 z-50 flex flex-col overflow-hidden rounded-xl border border-emerald-400/15 bg-black shadow-2xl shadow-emerald-500/10'
+      className='absolute inset-0 z-50 flex flex-col overflow-hidden rounded-xl border border-violet-500/20 bg-black shadow-2xl shadow-violet-500/10'
     >
       <div className='flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-3'>
         <button
@@ -84,9 +84,9 @@ function MacOSDesktopInner() {
 
   return (
     <>
-      <div className='relative overflow-hidden rounded-xl border border-emerald-400/15 bg-gradient-to-br from-emerald-950 via-teal-900 to-cyan-950 shadow-2xl shadow-emerald-500/10'>
-        <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.15),transparent_50%)]' />
-        <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(20,184,166,0.1),transparent_50%)]' />
+      <div className='relative overflow-hidden rounded-xl border border-violet-500/20 bg-gradient-to-br from-violet-950 via-purple-900 to-blue-950 shadow-2xl shadow-violet-500/10'>
+        <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,58,237,0.15),transparent_50%)]' />
+        <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(59,130,246,0.1),transparent_50%)]' />
 
         <div className='flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-3'>
           <span className='text-xs text-white/50'></span>

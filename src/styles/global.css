@@ -5,47 +5,47 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 165 25% 6%;
+    --foreground: 0 0% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 165 25% 6%;
+    --card-foreground: 0 0% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 165 25% 6%;
-    --primary: 160 84% 30%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 0 0% 9%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 160 12% 96%;
-    --secondary-foreground: 165 25% 6%;
-    --muted: 160 12% 96%;
-    --muted-foreground: 160 6% 40%;
-    --accent: 160 12% 96%;
-    --accent-foreground: 165 25% 6%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 160 8% 90%;
-    --input: 160 8% 90%;
-    --ring: 160 84% 30%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 9%;
     --radius: 0.625rem;
   }
 
   .dark {
-    --background: 165 25% 3%;
-    --foreground: 150 12% 94%;
-    --card: 163 18% 5%;
-    --card-foreground: 150 12% 94%;
-    --popover: 163 18% 5%;
-    --popover-foreground: 150 12% 94%;
-    --primary: 156 64% 52%;
-    --primary-foreground: 165 25% 4%;
-    --secondary: 160 12% 9%;
-    --secondary-foreground: 150 12% 94%;
-    --muted: 160 12% 9%;
-    --muted-foreground: 152 8% 64%;
-    --accent: 160 12% 10%;
-    --accent-foreground: 150 12% 94%;
-    --destructive: 0 62% 40%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 98%;
-    --border: 160 12% 12%;
-    --input: 160 12% 12%;
-    --ring: 156 64% 52%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 0 0% 83%;
   }
 }
 
@@ -81,12 +81,12 @@
 
 @layer utilities {
   .text-gradient-accent {
-    @apply bg-gradient-to-r from-emerald-300 via-emerald-400 to-teal-300 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-violet-400 via-purple-400 to-blue-400 bg-clip-text text-transparent;
   }
 }
 
 ::selection {
-  @apply bg-emerald-400/25 text-emerald-50;
+  @apply bg-violet-400/30 text-violet-50;
 }
 
 ::-webkit-scrollbar {
@@ -98,13 +98,13 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(160 12% 14%);
+  background: hsl(0 0% 14%);
   border-radius: 5px;
   border: 2px solid hsl(var(--background));
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(160 12% 22%);
+  background: hsl(0 0% 22%);
 }
 
 /* film grain overlay for depth */

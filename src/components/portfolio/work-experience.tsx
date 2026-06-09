@@ -34,7 +34,7 @@ function JobEntry({ logo, company, role, period, blurb, index, isCurrentJob }: J
     >
       <div className='relative flex gap-5 md:gap-8'>
         <div className='relative flex flex-col items-center'>
-          <div className='relative z-10 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-emerald-400/20 bg-background shadow-[0_0_20px_rgba(52,211,153,0.08)] md:h-14 md:w-14'>
+          <div className='relative z-10 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-violet-500/25 bg-background shadow-[0_0_20px_rgba(139,92,246,0.1)] md:h-14 md:w-14'>
             <img
               src={logo}
               alt={company}
@@ -50,12 +50,12 @@ function JobEntry({ logo, company, role, period, blurb, index, isCurrentJob }: J
         </div>
 
         <SpotlightCard
-          className='group mb-8 flex-1 border-emerald-400/10 bg-emerald-400/[0.02] p-6 backdrop-blur-sm transition-all duration-500 hover:border-emerald-400/25 hover:shadow-[0_0_40px_rgba(52,211,153,0.08)] md:p-7'
-          spotlightColor='rgba(52, 211, 153, 0.12)'
+          className='group mb-8 flex-1 border-violet-500/10 bg-violet-500/[0.02] p-6 backdrop-blur-sm transition-all duration-500 hover:border-violet-500/30 hover:shadow-[0_0_40px_rgba(139,92,246,0.1)] md:p-7'
+          spotlightColor='rgba(139, 92, 246, 0.15)'
         >
           <header className='mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1'>
             <h3 className='text-lg font-semibold text-foreground md:text-xl'>{company}</h3>
-            <span className='text-sm font-medium text-emerald-300'>{role}</span>
+            <span className='text-sm font-medium text-violet-400'>{role}</span>
             <span className='ml-auto font-mono text-xs text-muted-foreground'>{period}</span>
           </header>
 
@@ -70,8 +70,8 @@ export default function WorkExperience() {
   return (
     <section id='work-exp' className='relative px-4 py-24 md:py-32'>
       <div className='pointer-events-none absolute inset-0 overflow-hidden'>
-        <div className='absolute left-0 top-1/4 h-96 w-96 rounded-full bg-emerald-500/5 blur-[100px]' />
-        <div className='absolute bottom-1/4 right-0 h-96 w-96 rounded-full bg-teal-500/5 blur-[100px]' />
+        <div className='absolute left-0 top-1/4 h-96 w-96 rounded-full bg-violet-600/5 blur-[100px]' />
+        <div className='absolute bottom-1/4 right-0 h-96 w-96 rounded-full bg-blue-600/5 blur-[100px]' />
       </div>
 
       <div className='relative mx-auto max-w-4xl'>
@@ -86,7 +86,7 @@ export default function WorkExperience() {
           threshold={0.2}
         >
           <div className='mb-14 text-center md:mb-20'>
-            <p className='mb-4 font-mono text-xs tracking-widest text-emerald-400'>
+            <p className='mb-4 font-mono text-xs tracking-widest text-violet-400'>
               <span className='text-muted-foreground'>$</span> cat work_history.log
             </p>
             <h2 className='text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl'>
@@ -99,7 +99,7 @@ export default function WorkExperience() {
         </AnimatedContent>
 
         <div className='relative'>
-          <div className='pointer-events-none absolute bottom-8 left-6 top-2 w-px bg-gradient-to-b from-emerald-400/30 via-emerald-400/10 to-transparent md:left-7' />
+          <div className='pointer-events-none absolute bottom-8 left-6 top-2 w-px bg-gradient-to-b from-violet-500/30 via-violet-500/10 to-transparent md:left-7' />
           {profile.experience.map((job, index) => (
             <JobEntry key={job.company} {...job} index={index} isCurrentJob={index === 0} />
           ))}

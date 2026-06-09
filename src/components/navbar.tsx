@@ -31,7 +31,7 @@ const navItems: DockItemData[] = [
     icon: (
       <div className='relative'>
         <FileText className='h-5 w-5 text-white/80' />
-        <ExternalLink className='absolute -right-1 -top-1 h-2.5 w-2.5 text-emerald-400' />
+        <ExternalLink className='absolute -right-1 -top-1 h-2.5 w-2.5 text-violet-400' />
       </div>
     ),
     label: 'CV',
@@ -48,7 +48,7 @@ export default function Navbar() {
         magnification={64}
         distance={120}
         panelHeight={56}
-        className='border-emerald-400/15 bg-black/70 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl'
+        className='border-white/10 bg-black/70 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl'
         spring={{ mass: 0.1, stiffness: 200, damping: 15 }}
       />
     </nav>

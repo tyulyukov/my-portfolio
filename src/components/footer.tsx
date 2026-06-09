@@ -6,12 +6,12 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className='relative border-t border-emerald-400/10 pb-32'>
+    <footer className='relative border-t border-violet-500/10 pb-32'>
       <div className='mx-auto max-w-6xl px-4 py-12'>
         <div className='flex flex-col items-center justify-between gap-8 md:flex-row'>
           <div className='flex flex-col items-center gap-2 md:items-start'>
             <p className='font-mono text-sm'>
-              <span className='text-teal-400'>const</span>{' '}
+              <span className='text-violet-400'>const</span>{' '}
               <span className='text-foreground'>developer</span>{' '}
               <span className='text-muted-foreground'>=</span>{' '}
               <span className='text-amber-300'>&quot;{profile.name}&quot;</span>
@@ -28,7 +28,7 @@ export default function Footer() {
                 target='_blank'
                 rel='noreferrer'
                 aria-label={c.label}
-                className='flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-400/15 bg-emerald-400/5 text-muted-foreground transition-all duration-300 hover:border-emerald-400/40 hover:bg-emerald-400/10 hover:text-emerald-300'
+                className='flex h-10 w-10 items-center justify-center rounded-lg border border-violet-500/20 bg-violet-500/5 text-muted-foreground transition-all duration-300 hover:border-violet-500/40 hover:bg-violet-500/10 hover:text-violet-400'
               >
                 <FontAwesomeIcon icon={c.icon} className='h-4 w-4' />
               </a>
@@ -38,7 +38,7 @@ export default function Footer() {
 
         <div className='mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 md:flex-row'>
           <p className='font-mono text-xs text-muted-foreground'>
-            <span className='text-emerald-400'>&copy;</span> {year} · {profile.name}
+            <span className='text-violet-400'>&copy;</span> {year} · {profile.name}
           </p>
 
           <div className='flex items-center gap-2 font-mono text-xs text-muted-foreground'>

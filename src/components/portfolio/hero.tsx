@@ -66,7 +66,7 @@ export default function Hero() {
     >
       <div className='pointer-events-none absolute inset-0 z-0'>
         <Aurora
-          colorStops={['#022c22', '#059669', '#155e75']}
+          colorStops={['#3b0764', '#7c3aed', '#2563eb']}
           amplitude={1}
           blend={0.6}
           speed={0.4}
@@ -79,13 +79,13 @@ export default function Hero() {
         <div className='flex max-w-2xl flex-col items-center text-center lg:items-start lg:text-left'>
           <div className='mb-8 flex items-center gap-4'>
             <div className='relative'>
-              <div className='absolute -inset-2 rounded-full bg-gradient-to-r from-emerald-500/30 to-teal-500/30 blur-xl' />
+              <div className='absolute -inset-2 rounded-full bg-gradient-to-r from-violet-600/40 to-blue-600/40 blur-xl' />
               <img
                 src='/avatar.webp'
                 alt='avatar'
-                className='relative h-20 w-20 rounded-full border-2 border-emerald-400/30 md:h-24 md:w-24'
+                className='relative h-20 w-20 rounded-full border-2 border-violet-500/30 md:h-24 md:w-24'
               />
-              <div className='absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-emerald-400/40 bg-background text-xs'>
+              <div className='absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-violet-500/50 bg-background text-xs'>
                 🤖
               </div>
             </div>
@@ -101,7 +101,7 @@ export default function Hero() {
               />
               <ShinyText
                 text={`${yearsExp}+ years · Backend & AI`}
-                className='font-mono text-sm text-emerald-300/80'
+                className='font-mono text-sm text-violet-400'
                 speed={3}
               />
             </div>
@@ -136,11 +136,11 @@ export default function Hero() {
                 href={c.href}
                 target='_blank'
                 rel='noreferrer'
-                className='group flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/5 px-4 py-2.5 text-sm font-medium text-foreground/90 backdrop-blur-sm transition-all duration-300 hover:border-emerald-400/40 hover:bg-emerald-400/10 hover:shadow-[0_0_24px_rgba(52,211,153,0.15)]'
+                className='group flex items-center gap-2 rounded-lg border border-violet-500/20 bg-violet-500/5 px-4 py-2.5 text-sm font-medium text-foreground/90 backdrop-blur-sm transition-all duration-300 hover:border-violet-500/40 hover:bg-violet-500/10 hover:shadow-[0_0_24px_rgba(139,92,246,0.15)]'
               >
                 <FontAwesomeIcon
                   icon={c.icon}
-                  className='h-4 w-4 text-emerald-300 transition-transform duration-300 group-hover:scale-110'
+                  className='h-4 w-4 text-violet-400 transition-transform duration-300 group-hover:scale-110'
                 />
                 {c.label}
               </a>
@@ -156,11 +156,11 @@ export default function Hero() {
                 : 'translate-y-4 scale-95 opacity-0'
             }`}
           >
-            <div className='absolute -inset-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 to-teal-500/15 blur-2xl' />
+            <div className='absolute -inset-4 rounded-2xl bg-gradient-to-r from-violet-600/20 to-blue-600/20 blur-2xl' />
             {showOS ? (
               <MacOSDesktop />
             ) : (
-              <div className='relative overflow-hidden rounded-xl border border-emerald-400/15 bg-black/80 shadow-2xl shadow-emerald-500/10'>
+              <div className='relative overflow-hidden rounded-xl border border-violet-500/20 bg-black/80 shadow-2xl shadow-violet-500/10'>
                 <div className='flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-3'>
                   <button
                     onClick={() => setShowOS(true)}
