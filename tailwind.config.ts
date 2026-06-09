@@ -18,6 +18,11 @@ export default {
       }
     },
     extend: {
+      fontFamily: {
+        sans: ['"General Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Clash Display"', '"General Sans"', 'ui-sans-serif', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace']
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

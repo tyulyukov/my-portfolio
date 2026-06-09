@@ -5,47 +5,47 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 9%;
+    --foreground: 165 25% 6%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
+    --card-foreground: 165 25% 6%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
-    --primary: 0 0% 9%;
+    --popover-foreground: 165 25% 6%;
+    --primary: 160 84% 30%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 9%;
+    --secondary: 160 12% 96%;
+    --secondary-foreground: 165 25% 6%;
+    --muted: 160 12% 96%;
+    --muted-foreground: 160 6% 40%;
+    --accent: 160 12% 96%;
+    --accent-foreground: 165 25% 6%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 9%;
-    --radius: 0.5rem;
+    --border: 160 8% 90%;
+    --input: 160 8% 90%;
+    --ring: 160 84% 30%;
+    --radius: 0.625rem;
   }
 
   .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 4%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 64%;
-    --accent: 0 0% 10%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62% 30%;
+    --background: 165 25% 3%;
+    --foreground: 150 12% 94%;
+    --card: 163 18% 5%;
+    --card-foreground: 150 12% 94%;
+    --popover: 163 18% 5%;
+    --popover-foreground: 150 12% 94%;
+    --primary: 156 64% 52%;
+    --primary-foreground: 165 25% 4%;
+    --secondary: 160 12% 9%;
+    --secondary-foreground: 150 12% 94%;
+    --muted: 160 12% 9%;
+    --muted-foreground: 152 8% 64%;
+    --accent: 160 12% 10%;
+    --accent-foreground: 150 12% 94%;
+    --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14%;
-    --input: 0 0% 14%;
-    --ring: 0 0% 83%;
+    --border: 160 12% 12%;
+    --input: 160 12% 12%;
+    --ring: 156 64% 52%;
   }
 }
 
@@ -61,36 +61,59 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background font-sans text-foreground antialiased;
   }
 
   #root {
     @apply flex h-full w-full flex-col;
   }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring/60 ring-offset-2 ring-offset-background;
+  }
 }
 
 @layer utilities {
-  .text-gradient {
-    @apply bg-gradient-to-r from-white via-white/80 to-white/60 bg-clip-text text-transparent;
-  }
-
   .text-gradient-accent {
-    @apply bg-gradient-to-r from-blue-400 via-violet-400 to-purple-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-emerald-300 via-emerald-400 to-teal-300 bg-clip-text text-transparent;
   }
-
-  .border-gradient {
-    background: linear-gradient(to right, hsl(var(--border)), transparent);
-  }
-
-  .glow-text {
-    text-shadow: 0 0 80px rgba(255, 255, 255, 0.15);
-  }
-}
-
-.nav-link {
-  @apply text-muted-foreground transition-colors duration-200 hover:text-foreground;
 }
 
 ::selection {
-  @apply bg-white/20;
+  @apply bg-emerald-400/25 text-emerald-50;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(160 12% 14%);
+  border-radius: 5px;
+  border: 2px solid hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(160 12% 22%);
+}
+
+/* film grain overlay for depth */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }

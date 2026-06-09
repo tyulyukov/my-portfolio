@@ -75,7 +75,7 @@ function DockItem({
       onFocus={() => isHovered.set(1)}
       onBlur={() => isHovered.set(0)}
       onClick={onClick}
-      className={`relative inline-flex items-center justify-center rounded-full border-2 border-neutral-700 bg-[#060010] shadow-md ${className}`}
+      className={`relative inline-flex items-center justify-center rounded-full border border-white/10 bg-[#0a120f] shadow-md ${className}`}
       tabIndex={0}
       role='button'
       aria-haspopup='true'
@@ -116,7 +116,7 @@ function DockLabel({ children, className = '', isHovered }: DockLabelProperties)
           animate={{ opacity: 1, y: -10 }}
           exit={{ opacity: 0, y: 0 }}
           transition={{ duration: 0.2 }}
-          className={`${className} absolute -top-6 left-1/2 w-fit whitespace-pre rounded-md border border-neutral-700 bg-[#060010] px-2 py-0.5 text-xs text-white`}
+          className={`${className} absolute -top-6 left-1/2 w-fit whitespace-pre rounded-md border border-white/10 bg-[#0a120f] px-2 py-0.5 font-mono text-xs text-white`}
           role='tooltip'
           style={{ x: '-50%' }}
         >
@@ -171,7 +171,7 @@ export default function Dock({
           isHovered.set(0);
           mouseX.set(Infinity);
         }}
-        className={`${className} absolute bottom-2 left-1/2 flex w-fit -translate-x-1/2 transform items-end gap-4 rounded-2xl border-2 border-neutral-700 px-4 pb-2`}
+        className={`${className} absolute bottom-2 left-1/2 flex w-fit -translate-x-1/2 transform items-end gap-4 rounded-2xl border px-4 pb-2`}
         style={{ height: panelHeight }}
         role='toolbar'
         aria-label='Application dock'

@@ -6,22 +6,22 @@ const skillCategories = [
   {
     name: 'Backend',
     items: ['Node.js', 'Nest.js', 'TypeScript', 'SocketIO'],
-    color: 'emerald'
+    dotClass: 'bg-emerald-400'
   },
   {
     name: 'Databases',
     items: ['PostgreSQL', 'MongoDB', 'Redis', 'ElasticSearch'],
-    color: 'blue'
+    dotClass: 'bg-teal-400'
   },
   {
     name: 'ORM & Queues',
     items: ['Prisma', 'TypeORM', 'RabbitMQ', 'BullMQ'],
-    color: 'violet'
+    dotClass: 'bg-cyan-400'
   },
   {
     name: 'Cloud & DevOps',
     items: ['AWS', 'Docker', 'Kubernetes', 'Firebase'],
-    color: 'amber'
+    dotClass: 'bg-lime-400'
   }
 ];
 
@@ -49,8 +49,8 @@ export default function Skills() {
   return (
     <section id='skills' className='relative overflow-hidden py-24 md:py-32'>
       <div className='pointer-events-none absolute inset-0'>
-        <div className='absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-violet-600/5 blur-[120px]' />
-        <div className='absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-blue-600/5 blur-[120px]' />
+        <div className='absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-emerald-500/5 blur-[120px]' />
+        <div className='absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-teal-500/5 blur-[120px]' />
       </div>
 
       <div className='relative mx-auto max-w-6xl px-4'>
@@ -63,33 +63,27 @@ export default function Skills() {
           animateOpacity
           threshold={0.2}
         >
-          <div className='mb-16 text-center'>
-            <div className='mb-4 inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/5 px-4 py-1.5'>
-              <span className='h-2 w-2 animate-pulse rounded-full bg-emerald-500' />
-              <span className='font-mono text-xs uppercase tracking-widest text-violet-400'>
-                stack.json
-              </span>
-            </div>
-            <h2 className='text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl'>
-              Tech{' '}
-              <span className='bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent'>
-                Arsenal
-              </span>
+          <div className='mb-14 text-center md:mb-16'>
+            <p className='mb-4 font-mono text-xs tracking-widest text-emerald-400'>
+              <span className='text-muted-foreground'>$</span> ls ~/stack
+            </p>
+            <h2 className='text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl'>
+              Tech <span className='text-gradient-accent'>Stack</span>
             </h2>
           </div>
         </AnimatedContent>
 
-        <div className='mb-16'>
+        <div className='mb-14 [mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)] md:mb-16'>
           <ScrollVelocity
             texts={[allSkills.join(' · ') + ' ·', [...allSkills].reverse().join(' · ') + ' ·']}
             velocity={40}
-            className='text-violet-500/20'
+            className='text-emerald-400/15'
             numCopies={4}
-            scrollerClassName='text-4xl md:text-6xl font-bold tracking-tight font-mono'
+            scrollerClassName='text-3xl md:text-5xl font-semibold tracking-tight font-mono'
           />
         </div>
 
-        <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-4'>
+        <div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-4'>
           {skillCategories.map((category, catIndex) => (
             <AnimatedContent
               key={category.name}
@@ -103,21 +97,11 @@ export default function Skills() {
               delay={catIndex * 0.1}
             >
               <SpotlightCard
-                className='h-full border-violet-500/10 bg-violet-500/[0.02] p-6 backdrop-blur-sm transition-all duration-500 hover:border-violet-500/30 hover:shadow-[0_0_40px_rgba(139,92,246,0.1)]'
-                spotlightColor='rgba(139, 92, 246, 0.15)'
+                className='h-full border-emerald-400/10 bg-emerald-400/[0.02] p-6 backdrop-blur-sm transition-all duration-500 hover:border-emerald-400/25 hover:shadow-[0_0_40px_rgba(52,211,153,0.08)]'
+                spotlightColor='rgba(52, 211, 153, 0.12)'
               >
                 <div className='mb-4 flex items-center gap-2'>
-                  <div
-                    className={`h-2.5 w-2.5 rounded-full ${
-                      category.color === 'emerald'
-                        ? 'bg-emerald-500'
-                        : category.color === 'blue'
-                          ? 'bg-blue-500'
-                          : category.color === 'amber'
-                            ? 'bg-amber-500'
-                            : 'bg-violet-500'
-                    }`}
-                  />
+                  <div className={`h-2 w-2 rounded-full ${category.dotClass}`} />
                   <span className='font-mono text-sm text-muted-foreground'>
                     {category.name.toLowerCase()}/
                   </span>
@@ -126,7 +110,7 @@ export default function Skills() {
                   {category.items.map((skill) => (
                     <div
                       key={skill}
-                      className='cursor-default rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-sm text-foreground/80 transition-all duration-300 hover:border-violet-500/50 hover:bg-violet-500/20 hover:text-foreground hover:shadow-[0_0_20px_rgba(139,92,246,0.2)]'
+                      className='cursor-default rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-sm text-foreground/80 transition-all duration-300 hover:border-emerald-400/40 hover:bg-emerald-400/10 hover:text-foreground hover:shadow-[0_0_20px_rgba(52,211,153,0.15)]'
                     >
                       {skill}
                     </div>

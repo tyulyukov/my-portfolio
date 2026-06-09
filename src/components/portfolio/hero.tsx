@@ -66,33 +66,33 @@ export default function Hero() {
     >
       <div className='pointer-events-none absolute inset-0 z-0'>
         <Aurora
-          colorStops={['#3b0764', '#7c3aed', '#2563eb']}
-          amplitude={1.2}
-          blend={0.7}
-          speed={0.5}
+          colorStops={['#022c22', '#059669', '#155e75']}
+          amplitude={1}
+          blend={0.6}
+          speed={0.4}
         />
       </div>
 
       <div className='pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/80 via-background/40 to-background' />
 
-      <div className='relative z-10 flex w-full max-w-6xl flex-col items-center px-4 lg:flex-row lg:items-start lg:justify-between lg:gap-12'>
+      <div className='relative z-10 flex w-full max-w-6xl flex-col items-center px-4 pb-20 pt-24 lg:flex-row lg:items-center lg:justify-between lg:gap-16 lg:pb-0 lg:pt-0'>
         <div className='flex max-w-2xl flex-col items-center text-center lg:items-start lg:text-left'>
-          <div className='mb-6 flex items-center gap-4'>
+          <div className='mb-8 flex items-center gap-4'>
             <div className='relative'>
-              <div className='absolute -inset-2 rounded-full bg-gradient-to-r from-violet-600/40 to-blue-600/40 blur-xl' />
+              <div className='absolute -inset-2 rounded-full bg-gradient-to-r from-emerald-500/30 to-teal-500/30 blur-xl' />
               <img
                 src='/avatar.webp'
                 alt='avatar'
-                className='relative h-20 w-20 rounded-full border-2 border-violet-500/30 md:h-24 md:w-24'
+                className='relative h-20 w-20 rounded-full border-2 border-emerald-400/30 md:h-24 md:w-24'
               />
-              <div className='absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-violet-500/50 bg-background text-xs'>
+              <div className='absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-emerald-400/40 bg-background text-xs'>
                 🤖
               </div>
             </div>
-            <div className='flex flex-col items-start'>
+            <div className='flex flex-col items-start gap-0.5'>
               <DecryptedText
                 text={profile.name}
-                className='text-lg font-bold text-foreground md:text-xl'
+                className='text-lg font-semibold text-foreground md:text-xl'
                 animateOn='view'
                 speed={30}
                 sequential
@@ -101,35 +101,31 @@ export default function Hero() {
               />
               <ShinyText
                 text={`${yearsExp}+ years · Backend & AI`}
-                className='text-sm text-violet-400'
+                className='font-mono text-sm text-emerald-300/80'
                 speed={3}
               />
             </div>
           </div>
 
-          <div className='mb-6'>
-            <h1 className='mb-3 text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl'>
-              <SplitText
-                text='I architect systems'
-                className='text-foreground'
-                delay={25}
-                duration={0.5}
-                ease='power2.out'
-                splitType='chars'
-                from={{ opacity: 0, y: 30 }}
-                to={{ opacity: 1, y: 0 }}
-                threshold={0.1}
-                rootMargin='-20px'
-              />
-            </h1>
-            <h1 className='text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl'>
-              <span className='bg-gradient-to-r from-violet-400 via-purple-400 to-blue-400 bg-clip-text pb-1 text-transparent'>
-                that scale infinitely.
-              </span>
-            </h1>
-          </div>
+          <h1 className='mb-7 text-4xl font-semibold leading-[1.1] tracking-tight [word-spacing:0.12em] md:text-5xl lg:text-6xl'>
+            <SplitText
+              text='I architect systems'
+              className='text-foreground'
+              tag='span'
+              textAlign='inherit'
+              delay={25}
+              duration={0.5}
+              ease='power2.out'
+              splitType='chars'
+              from={{ opacity: 0, y: 30 }}
+              to={{ opacity: 1, y: 0 }}
+              threshold={0.1}
+              rootMargin='-20px'
+            />
+            <span className='text-gradient-accent block pb-1'>that scale infinitely.</span>
+          </h1>
 
-          <p className='mb-8 max-w-xl text-base text-muted-foreground md:text-lg'>
+          <p className='mb-10 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg'>
             {profile.summary}
           </p>
 
@@ -140,11 +136,11 @@ export default function Hero() {
                 href={c.href}
                 target='_blank'
                 rel='noreferrer'
-                className='group flex items-center gap-2 rounded-lg border border-violet-500/20 bg-violet-500/5 px-4 py-2.5 text-sm font-medium text-foreground/90 backdrop-blur-sm transition-all duration-300 hover:border-violet-500/40 hover:bg-violet-500/10 hover:shadow-[0_0_20px_rgba(139,92,246,0.15)]'
+                className='group flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/5 px-4 py-2.5 text-sm font-medium text-foreground/90 backdrop-blur-sm transition-all duration-300 hover:border-emerald-400/40 hover:bg-emerald-400/10 hover:shadow-[0_0_24px_rgba(52,211,153,0.15)]'
               >
                 <FontAwesomeIcon
                   icon={c.icon}
-                  className='h-4 w-4 text-violet-400 transition-transform duration-300 group-hover:scale-110'
+                  className='h-4 w-4 text-emerald-300 transition-transform duration-300 group-hover:scale-110'
                 />
                 {c.label}
               </a>
@@ -152,7 +148,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className='mt-12 hidden lg:block'>
+        <div className='mt-14 hidden lg:block'>
           <div
             className={`relative transition-all duration-700 ease-out ${
               terminalOpen
@@ -160,11 +156,11 @@ export default function Hero() {
                 : 'translate-y-4 scale-95 opacity-0'
             }`}
           >
-            <div className='absolute -inset-4 rounded-2xl bg-gradient-to-r from-violet-600/20 to-blue-600/20 blur-2xl' />
+            <div className='absolute -inset-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 to-teal-500/15 blur-2xl' />
             {showOS ? (
               <MacOSDesktop />
             ) : (
-              <div className='relative overflow-hidden rounded-xl border border-violet-500/20 bg-black/80 shadow-2xl shadow-violet-500/10'>
+              <div className='relative overflow-hidden rounded-xl border border-emerald-400/15 bg-black/80 shadow-2xl shadow-emerald-500/10'>
                 <div className='flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-3'>
                   <button
                     onClick={() => setShowOS(true)}
@@ -198,10 +194,6 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className='absolute bottom-8 z-10 flex flex-col items-center gap-2 text-muted-foreground/50'>
-        <span className='font-mono text-xs uppercase tracking-widest'>scroll_down()</span>
-        <div className='h-8 w-px animate-pulse bg-gradient-to-b from-violet-500/50 to-transparent' />
-      </div>
     </section>
   );
 }
