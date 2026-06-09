@@ -42,7 +42,7 @@ export default function TerminalApp() {
       <pre className='pointer-events-none select-none font-mono text-xs leading-relaxed text-transparent md:text-sm'>
         {neofetch}
       </pre>
-      <pre className='absolute inset-4 font-mono text-xs leading-relaxed text-emerald-400/90 md:text-sm'>
+      <pre className='absolute inset-4 font-mono text-xs leading-relaxed text-violet-300/90 md:text-sm'>
         {displayedText}
         {showCursor && <span className='animate-pulse'>▊</span>}
       </pre>

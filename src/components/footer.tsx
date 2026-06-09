@@ -36,15 +36,10 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className='mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 md:flex-row'>
+        <div className='mt-8 flex justify-center border-t border-white/5 pt-8 md:justify-start'>
           <p className='font-mono text-xs text-muted-foreground'>
             <span className='text-violet-400'>&copy;</span> {year} · {profile.name}
           </p>
-
-          <div className='flex items-center gap-2 font-mono text-xs text-muted-foreground'>
-            <div className='h-2 w-2 animate-pulse rounded-full bg-emerald-500' />
-            <span>All systems operational</span>
-          </div>
         </div>
       </div>
     </footer>

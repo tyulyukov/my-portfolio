@@ -177,16 +177,10 @@ export default function Hero() {
                   <pre className='pointer-events-none select-none font-mono text-xs leading-relaxed text-transparent md:text-sm'>
                     {neofetch}
                   </pre>
-                  <pre className='absolute inset-4 font-mono text-xs leading-relaxed text-emerald-400/90 md:text-sm'>
+                  <pre className='absolute inset-4 font-mono text-xs leading-relaxed text-violet-300/90 md:text-sm'>
                     {displayedText}
                     {showCursor && terminalOpen && <span className='animate-pulse'>▊</span>}
                   </pre>
-                </div>
-                <div className='border-t border-white/10 bg-white/5 px-4 py-2'>
-                  <div className='flex items-center gap-2'>
-                    <div className='h-2 w-2 animate-pulse rounded-full bg-emerald-500' />
-                    <span className='font-mono text-xs text-emerald-400'>System online</span>
-                  </div>
                 </div>
               </div>
             )}
