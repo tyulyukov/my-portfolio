@@ -44,19 +44,25 @@ export default function CasinoApp() {
         </div>
       </div>
 
-      <div className='flex-1 p-1.5'>
+      <div className='min-h-0 flex-1 p-1.5'>
         <PlinkoBoard onResult={handleResult} dropBall={dropCounter} betAmount={betAmount} />
       </div>
 
-      {lastResult && (
-        <div
-          className={`mx-1.5 rounded px-1.5 py-0.5 text-center text-[10px] font-bold ${
-            lastResult.won ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
-          }`}
-        >
-          {lastResult.won ? '🎉' : '😢'} {lastResult.multiplier}x
-        </div>
-      )}
+      <div
+        className={`mx-1.5 flex h-5 shrink-0 items-center justify-center rounded text-[10px] font-bold ${
+          lastResult
+            ? lastResult.won
+              ? 'bg-emerald-500/20 text-emerald-400'
+              : 'bg-red-500/20 text-red-400'
+            : ''
+        }`}
+      >
+        {lastResult && (
+          <span>
+            {lastResult.won ? '🎉' : '😢'} {lastResult.multiplier}x
+          </span>
+        )}
+      </div>
 
       <div className='space-y-1.5 border-t border-white/10 bg-black/30 p-1.5'>
         <div className='flex items-center gap-1.5'>
