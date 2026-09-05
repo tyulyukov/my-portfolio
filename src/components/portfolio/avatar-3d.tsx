@@ -5,6 +5,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+import { avatarAssets } from '@/data/avatar';
+
 const dispose = (object: THREE.Object3D) => {
   object.traverse((child) => {
     if ('geometry' in child && child.geometry instanceof THREE.BufferGeometry)
@@ -42,6 +44,7 @@ export default function Avatar3D() {
     let frame = 0;
     let inViewport = true;
     let sceneObject: THREE.Object3D | undefined;
+    let shadowRotation: number | undefined;
     const mediaQuery = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
@@ -57,6 +60,7 @@ export default function Avatar3D() {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.autoUpdate = false;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     const environment = new RoomEnvironment();
     const generator = new THREE.PMREMGenerator(renderer);
@@ -117,6 +121,10 @@ export default function Avatar3D() {
       if (!active) return;
       const delta = clock.getDelta();
       if (inViewport && !document.hidden) {
+        if (sceneObject && shadowRotation !== sceneObject.rotation.y) {
+          shadowRotation = sceneObject.rotation.y;
+          renderer.shadowMap.needsUpdate = true;
+        }
         controls.autoRotate = playingReference.current;
         controls.update(delta);
         renderer.render(scene, camera);
@@ -124,7 +132,7 @@ export default function Avatar3D() {
       frame = requestAnimationFrame(render);
     };
     new GLTFLoader().load(
-      '/avatar.glb?v=2',
+      avatarAssets.model,
       (gltf) => {
         if (!active) {
           dispose(gltf.scene);
@@ -191,7 +199,7 @@ export default function Avatar3D() {
       />
       {state !== 'ready' && (
         <img
-          src='/avatar-3d.webp?v=2'
+          src={avatarAssets.poster}
           alt='Maksym with his laptop'
           className='h-full w-full object-contain p-3'
         />

@@ -57,7 +57,7 @@ def mesh(name, vertices, faces, mat, subdivision=0):
     return obj
 
 
-def sphere(name, location, scale, mat, segments=32, rings=20):
+def sphere(name, location, scale, mat, segments=24, rings=16):
     bpy.ops.mesh.primitive_uv_sphere_add(segments=segments, ring_count=rings, location=location)
     obj = bpy.context.object
     obj.name = name
@@ -153,6 +153,9 @@ smooth = head.modifiers.new('soft facial transitions', 'SMOOTH')
 smooth.factor = 1.1
 smooth.iterations = 5
 bpy.ops.object.modifier_apply(modifier=smooth.name)
+reduction = head.modifiers.new('reduce face geometry', 'DECIMATE')
+reduction.ratio = .5
+bpy.ops.object.modifier_apply(modifier=reduction.name)
 for polygon in head.data.polygons:
     polygon.use_smooth = True
 
@@ -328,7 +331,7 @@ def blend_parts(names, name, voxel):
     modifier.iterations = 4
     bpy.ops.object.modifier_apply(modifier=modifier.name)
     modifier = obj.modifiers.new('reduce export geometry', 'DECIMATE')
-    modifier.ratio = .45
+    modifier.ratio = .28
     bpy.ops.object.modifier_apply(modifier=modifier.name)
     for polygon in obj.data.polygons:
         polygon.use_smooth = True

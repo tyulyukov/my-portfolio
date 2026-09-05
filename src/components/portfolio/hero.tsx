@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ArrowDown, Terminal, X } from 'lucide-react';
 
+import { avatarAssets } from '@/data/avatar';
 import { profile } from '@/data/profile';
 
 const Avatar3D = lazy(() => import('./avatar-3d'));
@@ -52,7 +53,7 @@ export default function Hero() {
             <Suspense
               fallback={
                 <img
-                  src='/avatar-3d.webp?v=2'
+                  src={avatarAssets.poster}
                   alt='Maksym with his laptop'
                   className='aspect-square w-full max-w-[400px] object-contain p-3'
                 />
