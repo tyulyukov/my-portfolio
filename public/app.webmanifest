@@ -1,25 +1,19 @@
 {
-  "lang": "en-EN",
-  "name": "Maksym Tyulyukov - Portfolio",
+  "lang": "en",
+  "name": "Maksym Tyulyukov Portfolio",
   "short_name": "Maksym Tyulyukov",
-  "description": "Professional portfolio showcasing my skills and experience as a Node.js developer specializing in backend architecture and distributed systems.",
+  "description": "Maksym Tyulyukov's software engineering portfolio.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#3b65f2",
-  "background_color": "#3b65f2",
+  "theme_color": "#0a0a0a",
+  "background_color": "#0a0a0a",
   "icons": [
     {
       "src": "/favicon/favicon.svg",
-      "sizes": "192x192",
+      "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/favicon/favicon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }

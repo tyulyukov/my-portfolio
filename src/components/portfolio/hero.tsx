@@ -52,7 +52,7 @@ export default function Hero() {
             <Suspense
               fallback={
                 <img
-                  src='/avatar-3d.webp'
+                  src='/avatar-3d.webp?v=2'
                   alt='Maksym with his laptop'
                   className='aspect-square w-full max-w-[400px] object-contain p-3'
                 />

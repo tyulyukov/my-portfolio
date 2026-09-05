@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const dispose = (object: THREE.Object3D) => {
@@ -53,6 +54,17 @@ export default function Avatar3D() {
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    const environment = new RoomEnvironment();
+    const generator = new THREE.PMREMGenerator(renderer);
+    const environmentTarget = generator.fromScene(environment, 0.04);
+    scene.environment = environmentTarget.texture;
+    scene.environmentIntensity = 0.65;
+    environment.dispose();
+    generator.dispose();
     renderer.domElement.className = 'block h-full w-full';
     mount.append(renderer.domElement);
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -63,13 +75,24 @@ export default function Avatar3D() {
     controls.minPolarAngle = Math.PI * 0.35;
     controls.maxPolarAngle = Math.PI * 0.65;
     controls.autoRotateSpeed = 0.7;
-    scene.add(new THREE.HemisphereLight(0xd9_e7_ff, 0x20_23_37, 2.6));
-    const key = new THREE.DirectionalLight(0xff_ff_ff, 2.1);
+    scene.add(new THREE.HemisphereLight(0xff_f5_e8, 0x45_50_62, 0.55));
+    const key = new THREE.DirectionalLight(0xff_f1_df, 3.2);
     key.position.set(-3, 5, 6);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.camera.left = -4;
+    key.shadow.camera.right = 4;
+    key.shadow.camera.top = 5;
+    key.shadow.camera.bottom = -3;
+    key.shadow.camera.far = 20;
+    key.shadow.normalBias = 0.025;
     scene.add(key);
-    const fill = new THREE.DirectionalLight(0x8b_5c_f6, 1.4);
+    const fill = new THREE.DirectionalLight(0xd9_e8_ff, 1.2);
     fill.position.set(4, 2, 3);
     scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xff_f4_df, 2);
+    rim.position.set(1, 4, -4);
+    scene.add(rim);
     const resize = () => {
       const { width, height } = mount.getBoundingClientRect();
       if (!width || !height) return;
@@ -101,19 +124,25 @@ export default function Avatar3D() {
       frame = requestAnimationFrame(render);
     };
     new GLTFLoader().load(
-      '/avatar.glb',
+      '/avatar.glb?v=2',
       (gltf) => {
         if (!active) {
           dispose(gltf.scene);
           return;
         }
         const model = gltf.scene;
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
         sceneObject = model;
         modelReference.current = model;
         const bounds = new THREE.Box3().setFromObject(model);
         const center = bounds.getCenter(new THREE.Vector3());
         const size = bounds.getSize(new THREE.Vector3());
-        const radius = Math.max(size.x, size.y, size.z) * 0.57;
+        const radius = Math.max(size.x, size.y, size.z) * 0.64;
         const distance = radius / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
         camera.position
           .copy(center)
@@ -139,6 +168,8 @@ export default function Avatar3D() {
       modelReference.current = undefined;
       controls.dispose();
       if (sceneObject) dispose(sceneObject);
+      key.shadow.dispose();
+      environmentTarget.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
       renderer.domElement.remove();
@@ -160,7 +191,7 @@ export default function Avatar3D() {
       />
       {state !== 'ready' && (
         <img
-          src='/avatar-3d.webp'
+          src='/avatar-3d.webp?v=2'
           alt='Maksym with his laptop'
           className='h-full w-full object-contain p-3'
         />

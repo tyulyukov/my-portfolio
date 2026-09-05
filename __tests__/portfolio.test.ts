@@ -101,7 +101,7 @@ test('avatar renders, pauses and responds to mouse and keyboard', async ({ page 
 });
 
 test('failed 3D asset leaves a usable portfolio and poster', async ({ page }) => {
-  await page.route('**/avatar.glb', (route) => route.abort());
+  await page.route('**/avatar.glb*', (route) => route.abort());
   await page.goto(site);
   await expect(
     page.getByText('3D view could not load. Here is the portrait instead.')
