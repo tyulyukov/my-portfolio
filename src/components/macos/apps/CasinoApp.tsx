@@ -1,117 +1,149 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { useMacOS } from '@/contexts/MacOSContext';
 
 import PlinkoBoard from '../games/PlinkoBoard';
+import SlotMachine from '../games/SlotMachine';
 
+type Game = 'plinko' | 'slots';
 export default function CasinoApp() {
   const { casinoBalance, hasPlayedCasino, updateBalance, markCasinoPlayed, triggerExplosion } =
     useMacOS();
   const [betAmount, setBetAmount] = useState(10);
   const [dropCounter, setDropCounter] = useState(0);
-  const [isDropping, setIsDropping] = useState(false);
-  const [lastResult, setLastResult] = useState<{ multiplier: number; won: boolean }>();
-
-  const handleDrop = () => {
-    if (betAmount > casinoBalance || isDropping) return;
+  const [game, setGame] = useState<Game>('plinko');
+  const [isBusy, setIsBusy] = useState(false);
+  const [result, setResult] = useState('Pick a game and make it interesting.');
+  const busyReference = useRef(false);
+  const startBet = () => {
+    if (busyReference.current || betAmount > casinoBalance) return false;
+    busyReference.current = true;
     updateBalance(-betAmount);
-    setDropCounter((previous) => previous + 1);
     markCasinoPlayed();
-    setLastResult(undefined);
-    setIsDropping(true);
+    setIsBusy(true);
+    setResult('The house is watching.');
+    return true;
   };
-
-  const handleResult = useCallback(
+  const drop = () => {
+    if (startBet()) setDropCounter((count) => count + 1);
+  };
+  const finish = useCallback(
     (multiplier: number, originalBet: number) => {
-      const winnings = originalBet * multiplier;
-      updateBalance(winnings);
-      setLastResult({ multiplier, won: multiplier >= 1 });
-      setIsDropping(false);
+      const payout = originalBet * multiplier;
+      updateBalance(payout);
+      setResult(
+        payout
+          ? `${multiplier}× landed. ${payout} credits returned.`
+          : 'The board took it personally.'
+      );
+      busyReference.current = false;
+      setIsBusy(false);
     },
     [updateBalance]
   );
-
-  const handleWithdraw = () => {
-    triggerExplosion();
+  const borrow = () => {
+    if (!isBusy && casinoBalance < 5) {
+      updateBalance(100);
+      setResult('A discreet 100-credit loan appeared under the felt.');
+    }
   };
-
   return (
-    <div className='flex h-full flex-col bg-gradient-to-b from-purple-950 to-black'>
-      <div className='flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-amber-600 to-orange-600 px-2 py-1.5'>
+    <div className='flex h-full min-h-0 flex-col bg-[#f4e8c4] font-sans text-[#1f4137]'>
+      <header className='flex shrink-0 items-center justify-between border-b border-[#cdb471] bg-[#fff9e8]/90 px-3 py-2'>
         <div>
-          <span className='text-xs font-bold text-white'>🎰 Lucky Plinko</span>
+          <h2 className='text-sm font-bold tracking-tight'>Lucky Arcade</h2>
+          <p className='text-[10px] text-[#76694b]'>Excellent odds. For someone.</p>
         </div>
-        <div className='rounded bg-black/30 px-1.5 py-0.5'>
-          <span className='font-mono text-xs font-bold text-emerald-400'>
-            {Math.floor(casinoBalance)} fake credits
-          </span>
+        <div className='rounded-lg border border-[#d7ba70] bg-[#f7e6b6] px-2.5 py-1 text-right'>
+          <p className='text-[9px] uppercase tracking-wider text-[#806c38]'>Credits</p>
+          <p aria-label='Credit balance' className='font-mono text-sm font-bold'>
+            {casinoBalance}
+          </p>
         </div>
+      </header>
+      <div className='flex shrink-0 gap-1 border-b border-[#d4bd82] bg-[#eee0bb] px-3 pt-2'>
+        <button
+          onClick={() => {
+            setDropCounter(0);
+            setGame('plinko');
+          }}
+          disabled={isBusy}
+          className={`rounded-t-lg px-3 py-1.5 text-xs font-semibold ${game === 'plinko' ? 'bg-[#08604d] text-[#fff7dc]' : 'text-[#645b45] hover:bg-white/40'}`}
+        >
+          Plinko
+        </button>
+        <button
+          onClick={() => setGame('slots')}
+          disabled={isBusy}
+          className={`rounded-t-lg px-3 py-1.5 text-xs font-semibold ${game === 'slots' ? 'bg-[#08604d] text-[#fff7dc]' : 'text-[#645b45] hover:bg-white/40'}`}
+        >
+          Slots
+        </button>
       </div>
-
-      <div className='min-h-0 flex-1 p-1.5'>
-        <PlinkoBoard onResult={handleResult} dropBall={dropCounter} betAmount={betAmount} />
+      <div className='min-h-0 flex-1 p-2.5'>
+        {game === 'plinko' ? (
+          <div className='h-full min-h-[210px] rounded-xl border-4 border-[#b88d3b] bg-[#075847] p-1.5 shadow-inner'>
+            <PlinkoBoard onResult={finish} dropBall={dropCounter} betAmount={betAmount} />
+          </div>
+        ) : (
+          <SlotMachine
+            betAmount={betAmount}
+            balance={casinoBalance}
+            disabled={isBusy}
+            onStart={startBet}
+            onResult={finish}
+          />
+        )}
       </div>
-
       <div
         role='status'
         aria-live='polite'
-        className={`mx-1.5 flex h-5 shrink-0 items-center justify-center rounded text-xs font-bold ${
-          lastResult
-            ? lastResult.won
-              ? 'bg-emerald-500/20 text-emerald-400'
-              : 'bg-red-500/20 text-red-400'
-            : ''
-        }`}
+        className='mx-3 mb-2 rounded-md bg-[#e4d3a1] px-2 py-1.5 text-center text-[11px] text-[#5c5139]'
       >
-        {lastResult && (
-          <span>
-            {lastResult.won ? '🎉 nice bounce' : '😢 the board is evil'} · {lastResult.multiplier}x
-          </span>
-        )}
+        {result}
       </div>
-
-      <div className='space-y-1.5 border-t border-white/10 bg-black/30 p-1.5'>
-        <div className='flex items-center gap-1.5'>
-          <span className='text-[11px] text-white/50'>Fake bet:</span>
-          <div className='flex gap-1'>
+      <footer className='shrink-0 border-t border-[#cdb471] bg-[#fff9e8] p-2.5'>
+        <div className='flex items-center justify-between gap-2'>
+          <div className='flex items-center gap-1'>
+            <span className='mr-1 text-[11px] text-[#76694b]'>Bet</span>
             {[5, 10, 25, 50].map((amount) => (
               <button
                 key={amount}
                 onClick={() => setBetAmount(amount)}
-                disabled={amount > casinoBalance || isDropping}
-                className={`rounded px-1.5 py-2 font-mono text-[11px] transition-colors ${
-                  betAmount === amount
-                    ? 'bg-violet-600 text-white'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'
-                } disabled:opacity-30`}
+                disabled={isBusy || amount > casinoBalance}
+                className={`rounded-md px-2 py-1 text-xs font-semibold transition ${betAmount === amount ? 'bg-[#08604d] text-white' : 'bg-[#ecdfb9] text-[#4c493a] hover:bg-[#e2cd91]'} disabled:opacity-40`}
               >
                 {amount}
               </button>
             ))}
           </div>
-        </div>
-
-        <div className='flex gap-1.5'>
           <button
-            onClick={handleDrop}
-            disabled={betAmount > casinoBalance || isDropping}
-            className='min-h-10 flex-1 rounded bg-gradient-to-r from-violet-600 to-purple-600 py-2 text-xs font-bold text-white transition-all hover:from-violet-500 hover:to-purple-500 disabled:opacity-50'
+            onClick={borrow}
+            disabled={isBusy || casinoBalance >= 5}
+            className='text-[10px] font-medium text-[#07604d] underline decoration-[#a88b47] underline-offset-2 disabled:hidden'
           >
-            {isDropping ? 'Ball is vibing...' : 'Drop Ball'}
-          </button>
-          <button
-            onClick={handleWithdraw}
-            disabled={!hasPlayedCasino || isDropping}
-            className={`min-h-10 rounded px-2 py-2 text-xs font-bold transition-all ${
-              hasPlayedCasino
-                ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white hover:from-emerald-500 hover:to-green-500'
-                : 'bg-white/10 text-white/30'
-            }`}
-          >
-            💰 Withdraw
+            Borrow 100 credits
           </button>
         </div>
-      </div>
+        <div className='mt-2 flex gap-2'>
+          <button
+            hidden={game !== 'plinko'}
+            onClick={drop}
+            disabled={game !== 'plinko' || isBusy || betAmount > casinoBalance}
+            className='flex-1 rounded-lg bg-[#08604d] py-2 text-xs font-bold text-[#fff8e4] transition hover:bg-[#0b735d] disabled:opacity-40'
+          >
+            {' '}
+            {isBusy && game === 'plinko' ? 'Ball in play...' : 'Drop ball'}{' '}
+          </button>
+          <button
+            onClick={triggerExplosion}
+            disabled={!hasPlayedCasino || isBusy}
+            className='rounded-lg border border-[#b38d41] bg-[#d4ad52] px-3 py-2 text-xs font-bold text-[#3d351e] transition hover:bg-[#e4c36b] disabled:opacity-40'
+          >
+            Cash out
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }

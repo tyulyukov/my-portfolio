@@ -38,7 +38,6 @@ iris_inner = material('iris inner blue', (.075, .15, .17), roughness=.28)
 pupil = material('glossy pupils', (.004, .008, .01), roughness=.12)
 black = material('keyboard graphite', (.015, .02, .027), roughness=.48)
 display = material('display glass', (.009, .018, .026), metallic=.12, roughness=.23)
-code = material('display code', (.16, .41, .46), roughness=.5)
 logo = material('white inlaid Apple logo', (.94, .95, .97), metallic=.08, roughness=.25)
 
 
@@ -160,15 +159,13 @@ for polygon in head.data.polygons:
     polygon.use_smooth = True
 
 for side in (-1, 1):
-    x = side * .88
-    ear = sphere('outer ear', (x, .0, 2.32), (.155, .115, .265), skin)
-    ear.rotation_euler[1] = side * -.15
-    sphere('ear concha', (x + side * .034, -.092, 2.32), (.082, .025, .155), skin_shadow)
-    sphere('ear inner fold', (x + side * .04, -.12, 2.31), (.044, .028, .11), skin)
-    sphere('AirPod bud', (x + side * .022, -.161, 2.29), (.065, .078, .105), white)
-    stem = box('AirPod stem', (x + side * .035, -.168, 2.13), (.032, .038, .135), white, .03)
-    stem.rotation_euler[1] = side * -.12
-    sphere('AirPod microphone', (x + side * .052, -.179, 1.995), (.022, .025, .013), frame, 20, 12)
+    x = side * .855
+    sphere('outer ear', (x, .02, 2.32), (.105, .155, .245), skin)
+    sphere('ear concha', (side * .928, .015, 2.32), (.018, .095, .145), skin_shadow)
+    sphere('ear inner fold', (side * .946, -.005, 2.32), (.014, .060, .105), skin)
+    sphere('AirPod bud', (side * .970, -.025, 2.285), (.042, .072, .098), white)
+    stem = box('AirPod stem', (side * .982, -.018, 2.125), (.020, .032, .130), white, .02)
+    sphere('AirPod microphone', (side * .986, -.018, 1.992), (.013, .022, .012), frame, 20, 12)
 
 for x in (-.365, .365):
     sphere('almond eye', (x, -.545, 2.55), (.265, .13, .225), eye_white)
@@ -182,8 +179,8 @@ for x in (-.365, .365):
         (x,-.64,2.775,1.25),(x+.19,-.615,2.70,1),(x+.26,-.55,2.55,.5)], .033, skin)
     curve('lower eyelid', [(x-.25,-.55,2.52,.5),(x-.17,-.60,2.38,1),
         (x,-.625,2.325,1),(x+.19,-.59,2.40,1),(x+.255,-.55,2.54,.5)], .016, skin)
-    curve('eyebrow', [(x-.25,-.64,2.955,.25),(x-.12,-.695,3.015,1),
-        (x+.06,-.70,3.025,1.05),(x+.24,-.64,2.98,.2)], .037, brow)
+    curve('eyebrow', [(x-.25,-.676,2.955,.25),(x-.12,-.692,3.015,1),
+        (x+.06,-.694,3.025,1.05),(x+.24,-.680,2.98,.2)], .037, brow)
     points = []
     for j in range(16):
         t = math.tau * j / 16
@@ -193,8 +190,8 @@ curve('glasses bridge', [(-.048,-.776,2.62),(0,-.802,2.65),(.048,-.776,2.62)], .
 for side in (-1,1):
     curve('glasses temple', [(side*.686,-.76,2.65),(side*.83,-.43,2.66),
         (side*.915,.06,2.61),(side*.915,.14,2.43)], .022, frame)
-curve('subtle smile', [(-.245,-.565,1.991,.15),(-.12,-.622,1.948,.8),
-    (0,-.645,1.938,1),(.12,-.622,1.948,.8),(.245,-.565,1.991,.15)], .011, lips)
+curve('subtle smile', [(-.245,-.548,1.991,.15),(-.12,-.565,1.948,.8),
+    (0,-.570,1.938,1),(.12,-.565,1.948,.8),(.245,-.548,1.991,.15)], .011, lips)
 
 vertices, faces = [], []
 rows, columns = 40, 112
@@ -258,14 +255,11 @@ for side in (-1,1):
     sleeve.rotation_euler[1] = side * -.25
     forearm = sphere('bent sleeve', (side*.98,-.28,.48), (.27,.48,.24), shirt)
     forearm.rotation_euler[2] = side * -.33
-    curve('sleeve cuff', [(side*.77,-.65,.59),(side*.92,-.62,.68),(side*1.09,-.54,.59)], .015, seam)
     sphere('typing palm', (side*.66,-.73,.47), (.22,.22,.095), skin)
     for i in range(4):
         finger = sphere('typing finger', (side*(.49+i*.105),-.90+(i%2)*.035,.425), (.046,.16,.046), skin, 24, 16)
         finger.rotation_euler[2] = side * -.18
     sphere('thumb', (side*.43,-.70,.43), (.065,.13,.065), skin, 24, 16)
-    mesh('folded shirt collar', [(side*.19,-.24,1.61),(side*.39,-.32,1.43),
-        (side*.23,-.43,1.20),(side*.10,-.32,1.38)], [(0,1,2,3)], shirt)
 
 box('MacBook unibody base', (0,-.77,.34), (1.10,.66,.047), silver, .04)
 box('keyboard inset', (0,-.70,.39), (.94,.31,.008), black, .025)
@@ -279,21 +273,16 @@ for side in (-1,1):
         box('USB C port', (side*1.101,y,.337), (.002,.047,.012), black, .007)
 box('MacBook thin lid', (0,-1.30,1.195), (1.10,.044,.865), silver, .045)
 box('display black bezel', (0,-1.252,1.195), (1.053,.005,.815), black, .027)
-box('retina display', (0,-1.244,1.193), (1.024,.003,.784), display, .021)
-for row in range(9):
-    offset = .14 if row % 3 == 1 else 0
-    curve('editor line', [(-.84+offset,-1.237,1.52-row*.11),(-.22+(row%4)*.19,-1.237,1.52-row*.11)], .006, code)
+box('mtos_screen', (0,-1.244,1.193), (1.024,.003,.784), display, .021)
 sphere('webcam', (0,-1.235,1.996), (.012,.004,.012), frame, 16, 10)
 
-# A filled silhouette keeps the bitten edge and detached leaf visible at hero size.
 apple_outline = [
-    (.002,.13),(-.065,.16),(-.128,.15),(-.169,.113),(-.19,.05),(-.182,-.033),
-    (-.14,-.125),(-.10,-.162),(-.06,-.168),(-.006,-.149),(.046,-.166),
-    (.086,-.154),(.135,-.105),(.163,-.046),(.120,-.014),(.107,.027),
-    (.12,.071),(.153,.097),(.12,.139),(.061,.159),(.002,.13),
+    (-.004,.135),(-.068,.164),(-.137,.142),(-.178,.085),(-.182,.006),
+    (-.157,-.080),(-.102,-.145),(-.042,-.166),(.025,-.160),(.088,-.127),
+    (.135,-.068),(.155,-.005),(.120,.022),(.112,.062),(.132,.102),
+    (.157,.121),(.108,.148),(.052,.163),(-.004,.135),
 ]
-leaf_outline = [(.015,.177),(.032,.227),(.079,.261),(.118,.264),(.113,.22),(.074,.177),(.015,.177)]
-for name, outline in [('Apple bitten silhouette',apple_outline),('Apple detached leaf',leaf_outline)]:
+for name, outline in [('Apple bitten silhouette',apple_outline)]:
     data=bpy.data.curves.new(name,'CURVE')
     data.dimensions='2D'
     data.resolution_u=16
@@ -311,6 +300,29 @@ for name, outline in [('Apple bitten silhouette',apple_outline),('Apple detached
     obj.rotation_euler=(math.pi/2,0,0)
     obj.location=(0,-1.347,1.19)
     obj.data.materials.append(logo)
+
+data=bpy.data.curves.new('Apple detached leaf','CURVE')
+data.dimensions='2D'
+data.resolution_u=16
+data.fill_mode='BOTH'
+data.extrude=.001
+spline=data.splines.new('BEZIER')
+leaf_outline=[(.010,.180),(.036,.238),(.145,.287),(.108,.215)]
+spline.bezier_points.add(len(leaf_outline)-1)
+for point,(x,z) in zip(spline.bezier_points,leaf_outline):
+    point.co=(x,z,0)
+    point.handle_left_type='AUTO'
+    point.handle_right_type='AUTO'
+spline.bezier_points[0].handle_left_type='VECTOR'
+spline.bezier_points[0].handle_right_type='VECTOR'
+spline.bezier_points[2].handle_left_type='VECTOR'
+spline.bezier_points[2].handle_right_type='VECTOR'
+spline.use_cyclic_u=True
+leaf=bpy.data.objects.new('Apple detached leaf',data)
+bpy.context.collection.objects.link(leaf)
+leaf.rotation_euler=(math.pi/2,0,0)
+leaf.location=(0,-1.347,1.19)
+leaf.data.materials.append(logo)
 
 def blend_parts(names, name, voxel):
     bpy.ops.object.select_all(action='DESELECT')
@@ -341,7 +353,7 @@ blend_parts(['continuous sculpted hair cap','swept blond quiff'], 'sculpted swep
 blend_parts(['tailored shirt bust','shirt upper sleeve','bent sleeve'], 'continuous cotton shirt', .024)
 
 for obj in list(bpy.context.scene.objects):
-    if obj.name.startswith(('MacBook thin lid', 'display black bezel', 'retina display', 'editor line', 'webcam', 'Apple ')):
+    if obj.name.startswith(('MacBook thin lid', 'display black bezel', 'mtos_screen', 'webcam', 'Apple ')):
         pivot = Vector((0, -1.30, .33))
         rotation = Matrix.Rotation(.13, 4, 'X')
         obj.matrix_world = Matrix.Translation(pivot) @ rotation @ Matrix.Translation(-pivot) @ obj.matrix_world

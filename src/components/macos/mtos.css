@@ -1,0 +1,174 @@
+.mtos-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.mtos-dialog::backdrop {
+  background: rgba(18, 14, 35, 0.42);
+  backdrop-filter: blur(8px);
+}
+.mtos-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  color: #242136;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background:
+    linear-gradient(rgba(235, 228, 255, 0.34), rgba(196, 183, 241, 0.22)),
+    url('/mtos-wallpaper.webp') center/cover;
+}
+.mtos-shell h1,
+.mtos-shell h2,
+.mtos-shell h3,
+.mtos-shell .font-sans {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.mtos-menubar {
+  position: relative;
+  z-index: 1000;
+  display: flex;
+  height: 32px;
+  flex: none;
+  align-items: center;
+  padding: 0 12px;
+  color: #30284a;
+  background: rgba(255, 255, 255, 0.42);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(22px) saturate(1.4);
+}
+.mtos-menu-button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+.mtos-apps-menu {
+  position: absolute;
+  top: 28px;
+  left: 8px;
+  z-index: 10000;
+  width: 150px;
+  padding: 5px;
+  border: 1px solid rgba(83, 68, 130, 0.2);
+  border-radius: 10px;
+  background: rgba(250, 248, 255, 0.93);
+  box-shadow: 0 12px 30px rgba(48, 35, 95, 0.24);
+  backdrop-filter: blur(20px);
+}
+.mtos-apps-menu button {
+  display: block;
+  width: 100%;
+  padding: 7px 9px;
+  text-align: left;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.mtos-apps-menu button:hover {
+  background: #6c58c9;
+  color: white;
+}
+.mtos-window {
+  position: absolute;
+  top: 24px;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 13px;
+  background: rgba(249, 248, 252, 0.84);
+  box-shadow:
+    0 18px 50px rgba(45, 32, 84, 0.28),
+    inset 0 1px rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px) saturate(1.3);
+}
+.mtos-window-maximized {
+  top: 8px !important;
+  left: 8px !important;
+  width: calc(100% - 16px) !important;
+  height: calc(100% - 16px) !important;
+}
+.mtos-titlebar {
+  display: flex;
+  height: 32px;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 11px;
+  border-bottom: 1px solid rgba(70, 56, 112, 0.13);
+  cursor: grab;
+  font-size: 12px;
+  font-weight: 600;
+  touch-action: none;
+  user-select: none;
+}
+.mtos-titlebar:active {
+  cursor: grabbing;
+}
+.mtos-light {
+  position: relative;
+  display: grid;
+  width: 24px;
+  height: 28px;
+  place-items: center;
+  border-radius: 6px;
+  color: transparent;
+  font-size: 11px;
+  line-height: 1;
+  isolation: isolate;
+}
+.mtos-light::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--light-color);
+  box-shadow: inset 0 0 0 1px #00000012;
+}
+.mtos-light:hover {
+  color: #30241c;
+}
+.mtos-close {
+  --light-color: #ff6159;
+}
+.mtos-minimize {
+  --light-color: #ffbd44;
+}
+.mtos-maximize {
+  --light-color: #27c940;
+}
+.mtos-shell button:focus-visible {
+  outline: 2px solid #6250b8;
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .mtos-window {
+    top: 6px !important;
+    left: 6px !important;
+    width: calc(100% - 12px) !important;
+    height: calc(100% - 12px) !important;
+  }
+  .mtos-titlebar {
+    cursor: default;
+    touch-action: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mtos-window,
+  .mtos-menu-button,
+  .mtos-apps-menu {
+    transition: none !important;
+  }
+}

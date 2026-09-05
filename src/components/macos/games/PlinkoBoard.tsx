@@ -49,26 +49,28 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
   const betAmountReference = useRef(betAmount);
   const pegGlowReference = useRef(new Map<number, number>());
   const landingGlowReference = useRef({ slot: -1, until: 0 });
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0, pixelRatio: 1 });
   useEffect(() => {
     betAmountReference.current = betAmount;
   }, [betAmount]);
 
   const initPegs = useCallback((width: number, height: number) => {
     const pegs: Peg[] = [];
-    const rows = 8;
-    const pegRadius = 3;
-    const startY = 30;
-    const rowHeight = (height - 60) / rows;
+    const rows = 9;
+    const usableWidth = width - Math.max(30, width * 0.1);
+    const pegSpacing = usableWidth / 11;
+    const pegRadius = Math.max(2.5, Math.min(4, pegSpacing * 0.1));
+    const startY = 26;
+    const rowHeight = Math.max(18, (height - 62) / rows);
 
     for (let row = 0; row < rows; row++) {
       const pegsInRow = row + 3;
-      const rowWidth = (pegsInRow - 1) * 25;
+      const rowWidth = (pegsInRow - 1) * pegSpacing;
       const startX = (width - rowWidth) / 2;
 
       for (let col = 0; col < pegsInRow; col++) {
         pegs.push({
-          x: startX + col * 25,
+          x: startX + col * pegSpacing,
           y: startY + row * rowHeight,
           radius: pegRadius
         });
@@ -83,10 +85,14 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
     if (!canvas) return;
 
     const updateSize = () => {
-      const rect = { width: canvas.clientWidth, height: canvas.clientHeight };
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      setDimensions({ width: rect.width, height: rect.height });
+      const rect = {
+        width: Math.floor(canvas.clientWidth),
+        height: Math.floor(canvas.clientHeight)
+      };
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = rect.width * pixelRatio;
+      canvas.height = rect.height * pixelRatio;
+      setDimensions({ ...rect, pixelRatio });
       initPegs(rect.width, rect.height);
     };
 
@@ -124,7 +130,7 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    const { width, height } = dimensions;
+    const { width, height, pixelRatio } = dimensions;
     const GRAVITY = 0.25;
     const BOUNCE = 0.7;
     const slotWidth = width / MULTIPLIERS.length;
@@ -192,6 +198,7 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
       const frameTime = performance.now();
       const frameScale = Math.min(2, (frameTime - previousFrame) / (1000 / 60));
       previousFrame = frameTime;
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       context.clearRect(0, 0, width, height);
 
       for (const [index, mult] of MULTIPLIERS.entries()) {
@@ -200,7 +207,7 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
         context.fillRect(index * slotWidth, height - 20, slotWidth, 20);
         context.globalAlpha = 1;
         context.fillStyle = '#fff';
-        context.font = 'bold 8px monospace';
+        context.font = `bold ${Math.min(12, Math.max(8, slotWidth * 0.25))}px monospace`;
         context.textAlign = 'center';
         context.fillText(`${mult}x`, index * slotWidth + slotWidth / 2, height - 6);
       }
@@ -210,7 +217,7 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
         const glow = pegGlowReference.current.get(pegIndex) ?? 0;
         context.beginPath();
         context.arc(peg.x, peg.y, peg.radius + (glow > now ? 3 : 0), 0, Math.PI * 2);
-        context.fillStyle = glow > now ? '#fbbf24' : '#a78bfa';
+        context.fillStyle = glow > now ? '#fbbf24' : '#ecdeb0';
         context.fill();
       }
 
@@ -251,5 +258,11 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
     };
   }, [dimensions, onResult]);
 
-  return <canvas ref={canvasReference} className='h-full w-full' />;
+  return (
+    <canvas
+      ref={canvasReference}
+      className='h-full min-h-[210px] w-full rounded-xl'
+      aria-label='Plinko board'
+    />
+  );
 }

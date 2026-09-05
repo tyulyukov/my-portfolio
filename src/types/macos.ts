@@ -6,6 +6,8 @@ export interface WindowState {
   id: string;
   appId: AppId;
   zIndex: number;
+  minimized: boolean;
+  maximized: boolean;
 }
 
 export interface MacOSState {
@@ -21,6 +23,8 @@ export interface MacOSContextValue extends MacOSState {
   openApp: (appId: AppId) => void;
   closeWindow: (windowId: string) => void;
   focusWindow: (windowId: string) => void;
+  minimizeWindow: (windowId: string) => void;
+  toggleMaximizeWindow: (windowId: string) => void;
   updateBalance: (delta: number) => void;
   markCasinoPlayed: () => void;
   triggerExplosion: () => void;

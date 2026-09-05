@@ -1,0 +1,45 @@
+.avatar-entry {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  overflow: hidden;
+  background: #09090c;
+  color: #fff;
+}
+.avatar-entry::backdrop {
+  background: #09090c;
+}
+.avatar-entry-viewport {
+  position: absolute;
+}
+.avatar-entry-actions {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 12px;
+}
+.avatar-entry-actions button {
+  padding: 10px 16px;
+  border: 1px solid #ffffff40;
+  border-radius: 24px;
+  background: #16161cdd;
+  font:
+    13px -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+.avatar-entry-actions button:hover {
+  background: #393944;
+}
+.avatar-entry-actions button:focus-visible {
+  outline: 2px solid #b9a3ff;
+  outline-offset: 3px;
+}

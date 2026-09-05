@@ -8,13 +8,9 @@ const logoBackgrounds: Record<string, string> = {
 export default function WorkExperience() {
   return (
     <section id='work-exp' className='border-y border-border bg-card/40'>
-      <div className='mx-auto max-w-6xl px-5 py-20 sm:px-8 md:py-28'>
-        <p className='mb-4 font-mono text-xs text-violet-400'>01 / Selected experience</p>
+      <div className='mx-auto max-w-6xl px-5 py-16 sm:px-8 md:py-24'>
         <div className='mb-12 flex flex-col justify-between gap-5 sm:flex-row sm:items-end'>
-          <h2 className='text-4xl font-semibold tracking-tight md:text-5xl'>Actually shipped.</h2>
-          <p className='max-w-sm text-sm leading-relaxed text-muted-foreground'>
-            Products launched, cloud bills cut, and a few lessons learned the hard way.
-          </p>
+          <h2 className='text-4xl font-semibold tracking-tight md:text-5xl'>Where I've worked.</h2>
         </div>
         <div>
           {profile.experience.map((job) => (

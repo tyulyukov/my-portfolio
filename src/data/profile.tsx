@@ -4,7 +4,7 @@ import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 export const profile = {
   name: 'Maksym Tyulyukov',
   summary:
-    'I build with AI every day. My agent workflows help me deliver faster and raise the quality of what ships. Then I keep pushing them further.',
+    'I build with AI every day. My agent workflows help me deliver faster and raise the quality of what ships.',
   contacts: [
     {
       label: 'Email',
@@ -36,11 +36,13 @@ export const profile = {
       logo: '/obrio.svg',
       company: 'OBRIO',
       role: 'Back-End Engineer',
-      period: 'Aug 2025 to present',
+      period: 'Aug 2025 — present',
       blurb: (
         <>
-          Building marketing automation at <b>OBRIO</b> for Nebula. I work on the tools behind user
-          acquisition and campaigns, and use AI to push delivery further.
+          Working in MarTech, developing and maintaining marketing automation solutions that power
+          the growth of <b>Nebula</b> — the #1 astrology app with <b>60M+ users</b> worldwide.
+          Building high-performance systems for user acquisition, analytics pipelines, and campaign
+          orchestration at scale.
         </>
       )
     },
@@ -48,11 +50,14 @@ export const profile = {
       logo: '/sda.svg',
       company: 'SDA',
       role: 'Node.js Developer',
-      period: 'Nov 2024 to Jul 2025',
+      period: 'Nov 2024 — Jul 2025',
       blurb: (
         <>
-          Cut the monthly AWS bill by <b>about 50%</b>. Owned application and database design,
-          shipped payments across four providers, and helped four developers get up to speed.
+          Re-architected a legacy monolith into event-driven micro-services on AWS (EKS + SQS +
+          Lambda) and introduced cost-aware autoscaling that cut the monthly cloud bill by{' '}
+          <b>≈ 50 %</b>. Owned application & DB design, integrated payments (Stripe, NMI, App Store,
+          Google Play), applied the Outbox pattern for reliable messaging and mentored four devs
+          through code-reviews & onboarding.
         </>
       )
     },
@@ -60,11 +65,13 @@ export const profile = {
       logo: '/cowchain.png',
       company: 'Cowchain',
       role: 'Node.js Developer',
-      period: 'Aug 2024 to Nov 2024',
+      period: 'Aug 2024 — Nov 2024',
       blurb: (
         <>
-          Built APIs for Web3 games serving <b>40M+ users</b>. Took one service&apos;s first load
-          from <b>30 seconds to 750 milliseconds</b> and shipped matchmaking and voting systems.
+          Built high-throughput REST & WebSocket APIs for Web3 games serving <b>40 M+ users</b>.
+          Refactored a crypto-pools service, slashing first-load from <b>30 s → 750 ms</b>;
+          implemented Redis-driven matchmaking, subgraph + smart-contract integrations, and a voting
+          / betting engine for a 1M MAU tap-to-earn title.
         </>
       )
     },
@@ -72,11 +79,13 @@ export const profile = {
       logo: '/lab325.png',
       company: 'LAB325',
       role: 'Node.js Developer',
-      period: 'Apr 2023 to Aug 2024',
+      period: 'Apr 2023 — Aug 2024',
       blurb: (
         <>
-          Built APIs for AI and healthcare products. Led payment integrations for an AI psychologist
-          platform and moved its JavaScript codebase to <b>strict TypeScript</b>.
+          Delivered GraphQL APIs for AI & healthcare, covering schema & index design, queues,
+          web-sockets and E2E tests. Led multi-gateway payment integration for an AI psychologist
+          platform and migrated the whole codebase from JavaScript to <b>strict TypeScript</b>,
+          boosting stability and dev velocity.
         </>
       )
     },
@@ -84,11 +93,13 @@ export const profile = {
       logo: '/gribble.svg',
       company: 'Gribble',
       role: 'Full-stack Developer',
-      period: 'Aug 2022 to Mar 2023',
+      period: 'Aug 2022 — Mar 2023',
       blurb: (
         <>
-          Led a six-person team and launched an edtech MVP in <b>10 weeks</b>. Took it from
-          requirements to deployment, then pitched it to potential investors.
+          Bootstrapped an ed-tech MVP in 10 weeks: Node.js & .NET micro-services, Vue front-end and
+          AWS / Netlify infra. Defined requirements, led a 6-person team with CI/CD & code-reviews,
+          managed cloud deployment and pitched the product to potential investors—gaining deep
+          experience in leadership and cloud ops.
         </>
       )
     }

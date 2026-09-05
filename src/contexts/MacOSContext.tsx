@@ -4,9 +4,11 @@ import type { AppId, GamePhase, MacOSContextValue, MacOSState, WindowState } fro
 import type { ReactNode } from 'react';
 
 const initialState: MacOSState = {
-  openWindows: [],
-  focusedWindowId: null,
-  zIndexCounter: 1,
+  openWindows: [
+    { id: 'terminal-default', appId: 'terminal', zIndex: 2, minimized: false, maximized: false }
+  ],
+  focusedWindowId: 'terminal-default',
+  zIndexCounter: 2,
   casinoBalance: 100,
   hasPlayedCasino: false,
   gamePhase: 'normal'
@@ -26,7 +28,9 @@ export function MacOSProvider({ children }: { children: ReactNode }) {
           focusedWindowId: existingWindow.id,
           zIndexCounter: previous.zIndexCounter + 1,
           openWindows: previous.openWindows.map((w) =>
-            w.id === existingWindow.id ? { ...w, zIndex: previous.zIndexCounter + 1 } : w
+            w.id === existingWindow.id
+              ? { ...w, minimized: false, zIndex: previous.zIndexCounter + 1 }
+              : w
           )
         };
       }
@@ -35,7 +39,9 @@ export function MacOSProvider({ children }: { children: ReactNode }) {
       const newWindow: WindowState = {
         id: windowId,
         appId,
-        zIndex: previous.zIndexCounter + 1
+        zIndex: previous.zIndexCounter + 1,
+        minimized: false,
+        maximized: false
       };
 
       return {
@@ -53,18 +59,55 @@ export function MacOSProvider({ children }: { children: ReactNode }) {
       openWindows: previous.openWindows.filter((w) => w.id !== windowId),
       focusedWindowId:
         previous.focusedWindowId === windowId
-          ? (previous.openWindows.find((w) => w.id !== windowId)?.id ?? null)
+          ? (previous.openWindows
+              .filter((w) => w.id !== windowId && !w.minimized)
+              .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null)
           : previous.focusedWindowId
     }));
   }, []);
 
   const focusWindow = useCallback((windowId: string) => {
+    setState((previous) =>
+      previous.focusedWindowId === windowId
+        ? previous
+        : {
+            ...previous,
+            focusedWindowId: windowId,
+            zIndexCounter: previous.zIndexCounter + 1,
+            openWindows: previous.openWindows.map((w) =>
+              w.id === windowId ? { ...w, zIndex: previous.zIndexCounter + 1 } : w
+            )
+          }
+    );
+  }, []);
+  const minimizeWindow = useCallback((windowId: string) => {
+    setState((previous) => ({
+      ...previous,
+      focusedWindowId:
+        previous.focusedWindowId === windowId
+          ? (previous.openWindows
+              .filter((w) => w.id !== windowId && !w.minimized)
+              .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null)
+          : previous.focusedWindowId,
+      openWindows: previous.openWindows.map((window) =>
+        window.id === windowId ? { ...window, minimized: true } : window
+      )
+    }));
+  }, []);
+  const toggleMaximizeWindow = useCallback((windowId: string) => {
     setState((previous) => ({
       ...previous,
       focusedWindowId: windowId,
       zIndexCounter: previous.zIndexCounter + 1,
-      openWindows: previous.openWindows.map((w) =>
-        w.id === windowId ? { ...w, zIndex: previous.zIndexCounter + 1 } : w
+      openWindows: previous.openWindows.map((window) =>
+        window.id === windowId
+          ? {
+              ...window,
+              minimized: false,
+              maximized: !window.maximized,
+              zIndex: previous.zIndexCounter + 1
+            }
+          : window
       )
     }));
   }, []);
@@ -106,6 +149,8 @@ export function MacOSProvider({ children }: { children: ReactNode }) {
     openApp,
     closeWindow,
     focusWindow,
+    minimizeWindow,
+    toggleMaximizeWindow,
     updateBalance,
     markCasinoPlayed,
     triggerExplosion,

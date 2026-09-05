@@ -1,7 +1,9 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useRef, useState } from 'react';
+
+import type { AvatarHandle } from './avatar-3d';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ArrowDown, Terminal, X } from 'lucide-react';
+import { ArrowDown, Terminal } from 'lucide-react';
 
 import { avatarAssets } from '@/data/avatar';
 import { profile } from '@/data/profile';
@@ -11,6 +13,17 @@ const MacOSDesktop = lazy(() => import('@/components/macos/MacOSDesktop'));
 
 export default function Hero() {
   const [desktopOpen, setDesktopOpen] = useState(false);
+  const avatarReference = useRef<AvatarHandle>(null);
+  const desktopButtonReference = useRef<HTMLButtonElement>(null);
+  const closeDesktop = () => {
+    setDesktopOpen(false);
+    requestAnimationFrame(() => desktopButtonReference.current?.focus());
+  };
+  const openDesktop = () => {
+    void import('@/components/macos/MacOSDesktop');
+    if (avatarReference.current) avatarReference.current.enterDesktop();
+    else setDesktopOpen(true);
+  };
 
   return (
     <section
@@ -59,15 +72,20 @@ export default function Hero() {
                 />
               }
             >
-              <Avatar3D />
+              <Avatar3D
+                desktopOpen={desktopOpen}
+                ref={avatarReference}
+                onEnterDesktop={() => setDesktopOpen(true)}
+              />
             </Suspense>
           </div>
           <div className='mt-4 text-center'>
             <button
               type='button'
+              ref={desktopButtonReference}
               aria-expanded={desktopOpen}
-              aria-controls={desktopOpen ? 'secret-desktop' : undefined}
-              onClick={() => setDesktopOpen((open) => !open)}
+              aria-haspopup='dialog'
+              onClick={openDesktop}
               className='inline-flex min-h-11 items-center gap-2 rounded-md px-3 font-mono text-xs text-muted-foreground hover:text-violet-400'
             >
               <Terminal aria-hidden='true' className='h-4 w-4' />
@@ -77,36 +95,9 @@ export default function Hero() {
         </div>
       </div>
       {desktopOpen && (
-        <div
-          id='secret-desktop'
-          className='mt-12 grid items-center gap-6 border-t border-border pt-10 lg:grid-cols-[1.2fr_1fr] lg:gap-12'
-        >
-          <div>
-            <p className='font-mono text-xs text-violet-400'>You found the side quest.</p>
-            <h2 className='mt-3 text-3xl font-semibold tracking-tight'>
-              This is a perfectly normal desktop.
-            </h2>
-            <p className='mt-4 max-w-sm text-muted-foreground'>
-              The casino is fake. The terrible financial decisions are yours.
-            </p>
-            <button
-              type='button'
-              onClick={() => setDesktopOpen(false)}
-              className='mt-5 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground'
-            >
-              <X aria-hidden='true' className='h-4 w-4' /> Back to the portfolio
-            </button>
-          </div>
-          <div className='min-w-0'>
-            <Suspense
-              fallback={
-                <p className='p-8 font-mono text-sm text-muted-foreground'>Booting mTOS...</p>
-              }
-            >
-              <MacOSDesktop />
-            </Suspense>
-          </div>
-        </div>
+        <Suspense fallback={<p role='status'>Booting mTOS...</p>}>
+          <MacOSDesktop onClose={closeDesktop} />
+        </Suspense>
       )}
       <a
         href='#work-exp'

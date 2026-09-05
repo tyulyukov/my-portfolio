@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -6,6 +6,10 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import { avatarAssets } from '@/data/avatar';
+
+import { addDesktopScreen, enterLaptop } from './avatar-desktop';
+
+import './avatar-desktop.css';
 
 const dispose = (object: THREE.Object3D) => {
   object.traverse((child) => {
@@ -24,7 +28,32 @@ const dispose = (object: THREE.Object3D) => {
   });
 };
 
-export default function Avatar3D() {
+export interface AvatarHandle {
+  enterDesktop: () => void;
+}
+
+export default function Avatar3D({
+  ref,
+  onEnterDesktop,
+  desktopOpen
+}: {
+  ref?: React.Ref<AvatarHandle>;
+  onEnterDesktop: () => void;
+  desktopOpen: boolean;
+}) {
+  const desktopOpenReference = useRef(desktopOpen);
+  desktopOpenReference.current = desktopOpen;
+  const onEnterReference = useRef(onEnterDesktop);
+  onEnterReference.current = onEnterDesktop;
+  const entryReference = useRef<(() => void) | undefined>(undefined);
+  useImperativeHandle(
+    ref,
+    () => ({
+      enterDesktop: () =>
+        entryReference.current ? entryReference.current() : onEnterReference.current()
+    }),
+    []
+  );
   const mountReference = useRef<HTMLDivElement>(null);
   const modelReference = useRef<THREE.Object3D | undefined>(undefined);
   const [playing, setPlaying] = useState(
@@ -45,6 +74,8 @@ export default function Avatar3D() {
     let inViewport = true;
     let sceneObject: THREE.Object3D | undefined;
     let shadowRotation: number | undefined;
+    let entering = false;
+    let restoreEntry: (() => void) | undefined;
     const mediaQuery = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
@@ -98,6 +129,7 @@ export default function Avatar3D() {
     rim.position.set(1, 4, -4);
     scene.add(rim);
     const resize = () => {
+      if (entering) return;
       const { width, height } = mount.getBoundingClientRect();
       if (!width || !height) return;
       camera.aspect = width / height;
@@ -116,17 +148,42 @@ export default function Avatar3D() {
     };
     mediaQuery.addEventListener('change', onMotionChange);
     document.addEventListener('visibilitychange', resize);
+    const raycaster = new THREE.Raycaster();
+    let pointerStart: { x: number; y: number } | undefined;
+    const pointerDown = (event: PointerEvent) => {
+      pointerStart = { x: event.clientX, y: event.clientY };
+    };
+    const pointerUp = (event: PointerEvent) => {
+      if (!pointerStart || !sceneObject || entering) return;
+      const start = pointerStart;
+      pointerStart = undefined;
+      if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5) return;
+      const bounds = renderer.domElement.getBoundingClientRect();
+      raycaster.setFromCamera(
+        new THREE.Vector2(
+          ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
+          -((event.clientY - bounds.top) / bounds.height) * 2 + 1
+        ),
+        camera
+      );
+      const hit = raycaster.intersectObject(sceneObject, true)[0];
+      if (hit && /MacBook|Apple|display|mtos_/.test(hit.object.name)) entryReference.current?.();
+    };
+    renderer.domElement.addEventListener('pointerdown', pointerDown);
+    renderer.domElement.addEventListener('pointerup', pointerUp);
     const clock = new THREE.Clock();
     const render = () => {
       if (!active) return;
       const delta = clock.getDelta();
-      if (inViewport && !document.hidden) {
+      if ((inViewport || entering) && !document.hidden && !desktopOpenReference.current) {
         if (sceneObject && shadowRotation !== sceneObject.rotation.y) {
           shadowRotation = sceneObject.rotation.y;
           renderer.shadowMap.needsUpdate = true;
         }
-        controls.autoRotate = playingReference.current;
-        controls.update(delta);
+        if (!entering) {
+          controls.autoRotate = playingReference.current;
+          controls.update(delta);
+        }
         renderer.render(scene, camera);
       }
       frame = requestAnimationFrame(render);
@@ -139,6 +196,7 @@ export default function Avatar3D() {
           return;
         }
         const model = gltf.scene;
+        addDesktopScreen(model);
         model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true;
@@ -158,6 +216,26 @@ export default function Avatar3D() {
         controls.target.copy(center).add(new THREE.Vector3(0, 0.05, 0));
         controls.update();
         scene.add(model);
+        entryReference.current = () => {
+          if (entering) return;
+          if (mediaQuery.matches) {
+            onEnterReference.current();
+            return;
+          }
+          entering = true;
+          controls.enabled = false;
+          restoreEntry = enterLaptop({
+            model,
+            camera,
+            renderer,
+            target: controls.target,
+            onComplete: () => onEnterReference.current(),
+            onRestore: () => {
+              entering = false;
+              controls.enabled = true;
+            }
+          });
+        };
         setState('ready');
         render();
       },
@@ -167,6 +245,8 @@ export default function Avatar3D() {
       }
     );
     return () => {
+      restoreEntry?.();
+      entryReference.current = undefined;
       active = false;
       cancelAnimationFrame(frame);
       document.removeEventListener('visibilitychange', resize);
@@ -174,6 +254,8 @@ export default function Avatar3D() {
       resizeObserver.disconnect();
       viewportObserver.disconnect();
       modelReference.current = undefined;
+      renderer.domElement.removeEventListener('pointerdown', pointerDown);
+      renderer.domElement.removeEventListener('pointerup', pointerUp);
       controls.dispose();
       if (sceneObject) dispose(sceneObject);
       key.shadow.dispose();
@@ -195,7 +277,7 @@ export default function Avatar3D() {
         className='absolute inset-0 touch-pan-y rounded-lg focus-visible:outline focus-visible:outline-violet-400'
         aria-hidden={state !== 'ready'}
         role='img'
-        aria-label='3D portrait of Maksym with a laptop. Drag to rotate.'
+        aria-label='3D portrait of Maksym with a laptop. Drag to rotate. Click the laptop to open mTOS.'
       />
       {state !== 'ready' && (
         <img

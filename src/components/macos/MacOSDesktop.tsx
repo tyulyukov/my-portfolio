@@ -1,6 +1,9 @@
-import { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-import { AnimatePresence, motion } from 'motion/react';
+import type { AppId, WindowState } from '@/types/macos';
+import type { ReactElement, RefObject } from 'react';
+
+import { motion, useDragControls, useMotionValue } from 'motion/react';
 import { createPortal } from 'react-dom';
 
 import { MacOSProvider, useMacOS } from '@/contexts/MacOSContext';
@@ -12,140 +15,245 @@ import ExplosionEffect from './effects/ExplosionEffect';
 import DinoGame from './games/DinoGame';
 import MiniDock from './MiniDock';
 
-function FullScreenWindow({
-  title,
-  children,
-  onClose
+import './mtos.css';
+
+const titles: Record<AppId, string> = {
+  terminal: 'Terminal',
+  chatgbt: 'ChatGBT',
+  casino: 'Lucky Arcade'
+};
+const content: Record<AppId, () => ReactElement> = {
+  terminal: TerminalApp,
+  chatgbt: ChatGBTApp,
+  casino: CasinoApp
+};
+const sizes = {
+  terminal: { width: 600, height: 420, top: 28 },
+  chatgbt: { width: 760, height: 570, top: 58 },
+  casino: { width: 860, height: 600, top: 88 }
+};
+
+function AppWindow({
+  window,
+  workarea
 }: {
-  title: string;
-  children: React.ReactNode;
-  onClose: () => void;
+  window: WindowState;
+  workarea: RefObject<HTMLDivElement | null>;
 }) {
-  return (
-    <motion.div
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.95, opacity: 0 }}
-      transition={{ duration: 0.2 }}
-      className='absolute inset-0 z-50 flex flex-col overflow-hidden rounded-xl border border-violet-500/20 bg-black shadow-2xl shadow-violet-500/10'
-    >
-      <div className='flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-3'>
-        <button
-          onClick={onClose}
-          aria-label={`Close ${title}`}
-          className='group flex h-3 w-3 items-center justify-center rounded-full bg-red-500/80 transition-all hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
-        >
-          <span className='hidden text-[8px] leading-none text-red-900 group-hover:block'>×</span>
-        </button>
-        <div className='h-3 w-3 rounded-full bg-yellow-500/80' />
-        <div className='h-3 w-3 rounded-full bg-green-500/80' />
-        <span className='ml-2 font-mono text-xs text-muted-foreground'>{title}</span>
-      </div>
-      <div className='flex-1 overflow-hidden'>{children}</div>
-    </motion.div>
-  );
-}
-
-function MacOSDesktopInner() {
-  const { openWindows, gamePhase, openApp, closeWindow } = useMacOS();
-
-  const overlayOpen = gamePhase !== 'normal';
+  const { closeWindow, focusWindow, minimizeWindow, toggleMaximizeWindow } = useMacOS();
+  const controls = useDragControls();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const [mobile, setMobile] = useState(() => matchMedia('(max-width: 640px)').matches);
+  const App = content[window.appId];
+  const size = sizes[window.appId];
+  useLayoutEffect(() => {
+    x.set(0);
+    y.set(0);
+  }, [window.maximized, x, y]);
   useEffect(() => {
-    if (!overlayOpen) return;
-    const root = document.querySelector<HTMLElement>('#root');
-    const previousFocus = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    if (root) root.inert = true;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      if (root) root.inert = false;
-      document.body.style.overflow = previousOverflow;
-      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
-    };
-  }, [overlayOpen]);
-
-  const activeWindow = openWindows.at(-1);
-
-  const renderAppContent = (appId: string) => {
-    switch (appId) {
-      case 'terminal': {
-        return <TerminalApp />;
-      }
-      case 'chatgbt': {
-        return <ChatGBTApp />;
-      }
-      case 'casino': {
-        return <CasinoApp />;
-      }
-      default: {
-        return null;
-      }
-    }
-  };
-
-  const getWindowTitle = (appId: string) => {
-    switch (appId) {
-      case 'terminal': {
-        return 'terminal — zsh';
-      }
-      case 'chatgbt': {
-        return 'ChatGBT — Always Helpful';
-      }
-      case 'casino': {
-        return 'Lucky Plinko Casino';
-      }
-      default: {
-        return appId;
-      }
-    }
-  };
-
+    const area = workarea.current;
+    if (!area) return;
+    const observer = new ResizeObserver(() => {
+      setMobile(matchMedia('(max-width: 640px)').matches);
+      x.set(0);
+      y.set(0);
+    });
+    observer.observe(area);
+    return () => observer.disconnect();
+  }, [workarea, x, y]);
   return (
-    <>
-      <div className='relative w-full max-w-[440px] overflow-hidden rounded-xl border border-violet-500/20 bg-gradient-to-br from-violet-950 via-purple-900 to-blue-950 shadow-2xl shadow-violet-500/10'>
-        <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,58,237,0.15),transparent_50%)]' />
-        <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(59,130,246,0.1),transparent_50%)]' />
-
-        <div className='flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-3'>
-          <span className='text-xs text-white/50'></span>
-          <span className='font-mono text-[10px] text-white/30'>mTOS 15.0</span>
-          <span className='ml-auto font-mono text-[10px] text-white/40'>
-            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
+    <motion.section
+      role='region'
+      aria-label={titles[window.appId]}
+      onPointerDown={() => focusWindow(window.id)}
+      onFocusCapture={() => focusWindow(window.id)}
+      drag={!mobile && !window.maximized}
+      dragControls={controls}
+      dragListener={false}
+      dragMomentum={false}
+      dragElastic={0}
+      dragConstraints={workarea}
+      style={{
+        x,
+        y,
+        zIndex: window.zIndex,
+        width: `min(${size.width}px, calc(100% - 24px))`,
+        height: `min(${size.height}px, calc(100% - min(${size.top}px, 8vh) - 12px))`,
+        top: `min(${size.top}px, 8vh)`,
+        left: `calc((100% - min(${size.width}px, calc(100% - 24px))) / 2)`
+      }}
+      className={`mtos-window ${window.maximized ? 'mtos-window-maximized' : ''} ${window.minimized ? 'pointer-events-none invisible' : ''}`}
+      inert={window.minimized}
+    >
+      <div
+        onPointerDown={(event) => {
+          if (!mobile && !window.maximized) controls.start(event);
+        }}
+        onDoubleClick={() => toggleMaximizeWindow(window.id)}
+        className='mtos-titlebar'
+      >
+        <div className='flex gap-1'>
+          <button
+            onPointerDown={(event) => event.stopPropagation()}
+            onDoubleClick={(event) => event.stopPropagation()}
+            onClick={() => closeWindow(window.id)}
+            aria-label={`Close ${titles[window.appId]}`}
+            className='mtos-light mtos-close'
+          >
+            ×
+          </button>
+          <button
+            onPointerDown={(event) => event.stopPropagation()}
+            onDoubleClick={(event) => event.stopPropagation()}
+            onClick={() => minimizeWindow(window.id)}
+            aria-label={`Minimize ${titles[window.appId]}`}
+            className='mtos-light mtos-minimize'
+          >
+            −
+          </button>
+          <button
+            onPointerDown={(event) => event.stopPropagation()}
+            onDoubleClick={(event) => event.stopPropagation()}
+            onClick={() => toggleMaximizeWindow(window.id)}
+            aria-label={`${window.maximized ? 'Restore' : 'Maximize'} ${titles[window.appId]}`}
+            className='mtos-light mtos-maximize'
+          >
+            +
+          </button>
         </div>
-
-        <div className='flex h-[320px] flex-col items-center justify-center text-white/50'>
-          <p className='font-display text-5xl font-semibold tracking-tight'>mTOS</p>
-          <p className='mt-2 font-mono text-xs text-white/70'>very serious operating system</p>
-        </div>
-
-        <div className='border-t border-white/10 bg-white/5 px-4 py-2'>
-          <MiniDock onOpenApp={openApp} />
-        </div>
-
-        <AnimatePresence mode='wait'>
-          {activeWindow && (
-            <FullScreenWindow
-              key={activeWindow.id}
-              title={getWindowTitle(activeWindow.appId)}
-              onClose={() => closeWindow(activeWindow.id)}
-            >
-              {renderAppContent(activeWindow.appId)}
-            </FullScreenWindow>
-          )}
-        </AnimatePresence>
+        <span>{titles[window.appId]}</span>
+        <span className='w-[76px]' />
       </div>
-
-      {gamePhase === 'exploding' && createPortal(<ExplosionEffect />, document.body)}
-      {gamePhase === 'dino' && createPortal(<DinoGame />, document.body)}
-    </>
+      <div className='min-h-0 flex-1 overflow-hidden'>
+        <App />
+      </div>
+    </motion.section>
   );
 }
 
-export default function MacOSDesktop() {
+function Shell({ onClose }: { onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const shellReference = useRef<HTMLDivElement>(null);
+  const previousControl = useRef<HTMLElement | undefined>(undefined);
+  const workarea = useRef<HTMLDivElement>(null);
+  const [appsOpen, setAppsOpen] = useState(false);
+  const [clock, setClock] = useState('');
+  const { openWindows, focusedWindowId, openApp, gamePhase } = useMacOS();
+  const focused = openWindows.find((item) => item.id === focusedWindowId);
+  const overlay = gamePhase !== 'normal';
+  useEffect(() => {
+    const node = dialog.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    node?.showModal();
+    const update = () =>
+      setClock(
+        new Intl.DateTimeFormat(undefined, {
+          weekday: 'short',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(new Date())
+      );
+    update();
+    const timer = setInterval(update, 30_000);
+    return () => {
+      clearInterval(timer);
+      node?.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+  useLayoutEffect(() => {
+    const node = shellReference.current;
+    if (!node) return;
+    node.inert = overlay;
+    if (!overlay && previousControl.current?.isConnected) previousControl.current.focus();
+  }, [overlay]);
+  return createPortal(
+    <dialog
+      ref={dialog}
+      aria-label='mTOS desktop'
+      onKeyDownCapture={(event) => {
+        if (event.key === 'Escape' && (overlay || appsOpen)) {
+          event.preventDefault();
+          if (appsOpen) setAppsOpen(false);
+        }
+      }}
+      onCancel={(event) => {
+        event.preventDefault();
+        if (appsOpen) setAppsOpen(false);
+        else if (!overlay) onClose();
+      }}
+      className='mtos-dialog'
+    >
+      <div
+        ref={shellReference}
+        className='mtos-shell'
+        onPointerDownCapture={(event) => {
+          if (appsOpen && event.target instanceof Element && !event.target.closest('.mtos-menubar'))
+            setAppsOpen(false);
+        }}
+        onFocusCapture={(event) => {
+          previousControl.current = event.target;
+        }}
+      >
+        <header className='mtos-menubar'>
+          <button
+            onClick={() => setAppsOpen((open) => !open)}
+            aria-expanded={appsOpen}
+            aria-controls={appsOpen ? 'mtos-apps-menu' : undefined}
+            className='mtos-menu-button'
+          >
+            <strong className='text-base tracking-tight'>mt.</strong>
+            <span>Apps</span>
+          </button>
+          {appsOpen && (
+            <>
+              <div id='mtos-apps-menu' className='mtos-apps-menu'>
+                {(['terminal', 'chatgbt', 'casino'] as AppId[]).map((app) => (
+                  <button
+                    key={app}
+                    onClick={() => {
+                      openApp(app);
+                      setAppsOpen(false);
+                    }}
+                  >
+                    {titles[app]}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          <span className='ml-5 text-xs font-semibold'>
+            {focused ? titles[focused.appId] : 'mTOS'}
+          </span>
+          <span className='ml-auto text-xs'>{clock}</span>
+          <button onClick={onClose} className='ml-4 rounded-md px-2 py-1 text-xs hover:bg-white/40'>
+            Exit mTOS
+          </button>
+        </header>
+        <div
+          id='mtos-workarea'
+          ref={workarea}
+          className='relative mb-[90px] min-h-0 flex-1 overflow-hidden'
+        >
+          {openWindows.map((window) => (
+            <AppWindow key={window.id} window={window} workarea={workarea} />
+          ))}
+        </div>
+        <MiniDock onOpenApp={openApp} />
+      </div>
+      {gamePhase === 'exploding' && <ExplosionEffect />}
+      {gamePhase === 'dino' && <DinoGame />}
+    </dialog>,
+    document.body
+  );
+}
+
+export default function MacOSDesktop({ onClose }: { onClose: () => void }) {
   return (
     <MacOSProvider>
-      <MacOSDesktopInner />
+      <Shell onClose={onClose} />
     </MacOSProvider>
   );
 }
