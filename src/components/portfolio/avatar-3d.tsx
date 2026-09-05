@@ -165,16 +165,16 @@ export default function Avatar3D() {
           className='h-full w-full object-contain p-3'
         />
       )}
-      {state === 'loading' && (
-        <span className='absolute bottom-3 left-1/2 -translate-x-1/2 text-xs text-muted-foreground'>
-          Loading 3D avatar...
-        </span>
-      )}
-      {state === 'error' && (
-        <span className='absolute inset-x-3 bottom-3 text-center text-xs text-muted-foreground'>
-          3D view could not load. Here is the portrait instead.
-        </span>
-      )}
+      <span
+        role='status'
+        className='absolute inset-x-3 bottom-3 text-center text-xs text-muted-foreground'
+      >
+        {state === 'loading'
+          ? 'Loading 3D avatar...'
+          : state === 'error'
+            ? '3D view could not load. Here is the portrait instead.'
+            : ''}
+      </span>
       {state === 'ready' && (
         <div className='absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap text-xs text-muted-foreground'>
           <button

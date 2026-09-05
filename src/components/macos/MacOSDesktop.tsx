@@ -52,7 +52,7 @@ function MacOSDesktopInner() {
   const overlayOpen = gamePhase !== 'normal';
   useEffect(() => {
     if (!overlayOpen) return;
-    const root = document.getElementById('root');
+    const root = document.querySelector<HTMLElement>('#root');
     const previousFocus = document.activeElement;
     const previousOverflow = document.body.style.overflow;
     if (root) root.inert = true;
@@ -116,7 +116,7 @@ function MacOSDesktopInner() {
 
         <div className='flex h-[320px] flex-col items-center justify-center text-white/50'>
           <p className='font-display text-5xl font-semibold tracking-tight'>mTOS</p>
-          <p className='mt-2 font-mono text-xs'>very serious operating system</p>
+          <p className='mt-2 font-mono text-xs text-white/70'>very serious operating system</p>
         </div>
 
         <div className='border-t border-white/10 bg-white/5 px-4 py-2'>

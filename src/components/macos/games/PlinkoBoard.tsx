@@ -129,6 +129,64 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
     const BOUNCE = 0.7;
     const slotWidth = width / MULTIPLIERS.length;
 
+    const animateBall = ({
+      ball,
+      frameScale,
+      now
+    }: {
+      ball: Ball;
+      frameScale: number;
+      now: number;
+    }) => {
+      ball.vy += GRAVITY * frameScale;
+      ball.x += ball.vx * frameScale;
+      ball.y += ball.vy * frameScale;
+      ball.trail.push({ x: ball.x, y: ball.y });
+      if (ball.trail.length > 8) ball.trail.shift();
+
+      for (const [pegIndex, peg] of pegsReference.current.entries()) {
+        const dx = ball.x - peg.x;
+        const dy = ball.y - peg.y;
+        const distribution = Math.hypot(dx, dy);
+        const minDistribution = ball.radius + peg.radius;
+
+        if (distribution < minDistribution) {
+          const angle = Math.atan2(dy, dx);
+          const speed = Math.hypot(ball.vx, ball.vy);
+
+          ball.vx = Math.cos(angle) * speed * BOUNCE + (Math.random() - 0.5) * 1.5;
+          ball.vy = Math.sin(angle) * speed * BOUNCE;
+
+          ball.x = peg.x + (minDistribution + 1) * Math.cos(angle);
+          ball.y = peg.y + (minDistribution + 1) * Math.sin(angle);
+          pegGlowReference.current.set(pegIndex, now + 120);
+        }
+      }
+
+      if (ball.x < ball.radius) {
+        ball.x = ball.radius;
+        ball.vx = Math.abs(ball.vx) * BOUNCE;
+      }
+      if (ball.x > width - ball.radius) {
+        ball.x = width - ball.radius;
+        ball.vx = -Math.abs(ball.vx) * BOUNCE;
+      }
+
+      for (const [trailIndex, trailPoint] of ball.trail.entries()) {
+        context.beginPath();
+        context.arc(trailPoint.x, trailPoint.y, (trailIndex + 1) / 3, 0, Math.PI * 2);
+        context.fillStyle = `rgba(251, 191, 36, ${(trailIndex + 1) / (ball.trail.length * 3)})`;
+        context.fill();
+      }
+      context.beginPath();
+      context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      context.fillStyle = '#fbbf24';
+      context.fill();
+      context.strokeStyle = '#f59e0b';
+      context.lineWidth = 1.5;
+      context.stroke();
+    };
+
     let previousFrame = performance.now();
     const animate = () => {
       const frameTime = performance.now();
@@ -159,53 +217,7 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
       const completedBalls: Ball[] = [];
 
       for (const ball of ballsReference.current) {
-        ball.vy += GRAVITY * frameScale;
-        ball.x += ball.vx * frameScale;
-        ball.y += ball.vy * frameScale;
-        ball.trail.push({ x: ball.x, y: ball.y });
-        if (ball.trail.length > 8) ball.trail.shift();
-
-        for (const [pegIndex, peg] of pegsReference.current.entries()) {
-          const dx = ball.x - peg.x;
-          const dy = ball.y - peg.y;
-          const distribution = Math.hypot(dx, dy);
-          const minDistribution = ball.radius + peg.radius;
-
-          if (distribution < minDistribution) {
-            const angle = Math.atan2(dy, dx);
-            const speed = Math.hypot(ball.vx, ball.vy);
-
-            ball.vx = Math.cos(angle) * speed * BOUNCE + (Math.random() - 0.5) * 1.5;
-            ball.vy = Math.sin(angle) * speed * BOUNCE;
-
-            ball.x = peg.x + (minDistribution + 1) * Math.cos(angle);
-            ball.y = peg.y + (minDistribution + 1) * Math.sin(angle);
-            pegGlowReference.current.set(pegIndex, now + 120);
-          }
-        }
-
-        if (ball.x < ball.radius) {
-          ball.x = ball.radius;
-          ball.vx = Math.abs(ball.vx) * BOUNCE;
-        }
-        if (ball.x > width - ball.radius) {
-          ball.x = width - ball.radius;
-          ball.vx = -Math.abs(ball.vx) * BOUNCE;
-        }
-
-        for (const [trailIndex, trailPoint] of ball.trail.entries()) {
-          context.beginPath();
-          context.arc(trailPoint.x, trailPoint.y, (trailIndex + 1) / 3, 0, Math.PI * 2);
-          context.fillStyle = `rgba(251, 191, 36, ${(trailIndex + 1) / (ball.trail.length * 3)})`;
-          context.fill();
-        }
-        context.beginPath();
-        context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-        context.fillStyle = '#fbbf24';
-        context.fill();
-        context.strokeStyle = '#f59e0b';
-        context.lineWidth = 1.5;
-        context.stroke();
+        animateBall({ ball, frameScale, now });
 
         if (ball.y >= height - 20 - ball.radius || now - ball.launchedAt >= 6000) {
           completedBalls.push(ball);

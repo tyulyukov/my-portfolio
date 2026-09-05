@@ -35,6 +35,9 @@ test('Plinko charges one bet and resizing or changing bets cannot award free cre
   await expect(page.getByText('90 fake credits')).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByText(/nice bounce|board is evil/)).toBeVisible({ timeout: 9000 });
+  await expect(page.locator('#secret-desktop').getByRole('status')).toContainText(
+    /nice bounce|board is evil/
+  );
   const credits = page.getByText(/fake credits/);
   const beforeResize = await credits.textContent();
   await page.getByRole('button', { name: '25', exact: true }).click();
@@ -109,6 +112,7 @@ test('failed 3D asset leaves a usable portfolio and poster', async ({ page }) =>
     page.getByRole('img', { name: 'Maksym with his laptop', exact: true })
   ).toBeVisible();
   await expect(page.getByRole('img', { name: /3D portrait/ })).toHaveCount(0);
+  await expect(page.getByRole('status')).toContainText('3D view could not load.');
 });
 
 test('phone-density canvas fits and leaves vertical touch scrolling available', async ({

@@ -4,7 +4,7 @@ import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 export const profile = {
   name: 'Maksym Tyulyukov',
   summary:
-    "I'm a software engineer obsessed with AI. I build agent workflows that help me deliver faster and raise the quality of what ships. Then I keep pushing them further.",
+    'I build with AI every day. My agent workflows help me deliver faster and raise the quality of what ships. Then I keep pushing them further.',
   contacts: [
     {
       label: 'Email',

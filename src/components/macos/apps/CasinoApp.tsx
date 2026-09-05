@@ -10,14 +10,14 @@ export default function CasinoApp() {
   const [betAmount, setBetAmount] = useState(10);
   const [dropCounter, setDropCounter] = useState(0);
   const [isDropping, setIsDropping] = useState(false);
-  const [lastResult, setLastResult] = useState<{ multiplier: number; won: boolean } | null>(null);
+  const [lastResult, setLastResult] = useState<{ multiplier: number; won: boolean }>();
 
   const handleDrop = () => {
     if (betAmount > casinoBalance || isDropping) return;
     updateBalance(-betAmount);
     setDropCounter((previous) => previous + 1);
     markCasinoPlayed();
-    setLastResult(null);
+    setLastResult(undefined);
     setIsDropping(true);
   };
 

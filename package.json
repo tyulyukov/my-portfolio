@@ -20,7 +20,8 @@
     "prettier": "prettier --write **/**/*.{html,css,scss,js,cjs,mjs,ts,tsx}",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "build:avatar": "blender --background --python scripts/build-avatar.py"
+    "build:avatar": "blender --background --python scripts/build-avatar.py",
+    "typecheck:tests": "tsc --noEmit --module esnext --moduleResolution node --target esnext --esModuleInterop --skipLibCheck __tests__/*.ts"
   },
   "dependencies": {
     "@codaworks/react-glow": "^1.0.6",

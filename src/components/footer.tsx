@@ -1,5 +1,7 @@
 import { profile } from '@/data/profile';
 
+const email = profile.contacts.find((contact) => contact.label === 'Email');
+
 export default function Footer() {
   return (
     <footer className='border-t border-border'>
@@ -7,10 +9,10 @@ export default function Footer() {
         <div>
           <p className='text-2xl font-semibold tracking-tight'>Got something worth shipping?</p>
           <a
-            href={profile.contacts[0].href}
+            href={email?.href}
             className='mt-3 inline-block text-violet-400 underline-offset-4 hover:underline'
           >
-            {profile.contacts[0].href.replace('mailto:', '')}
+            {email?.href.replace('mailto:', '')}
           </a>
         </div>
         <p className='text-xs text-muted-foreground'>

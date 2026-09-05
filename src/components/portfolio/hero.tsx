@@ -54,7 +54,7 @@ export default function Hero() {
                 <img
                   src='/avatar-3d.webp'
                   alt='Maksym with his laptop'
-                  className='h-72 w-72 object-contain'
+                  className='aspect-square w-full max-w-[400px] object-contain p-3'
                 />
               }
             >
