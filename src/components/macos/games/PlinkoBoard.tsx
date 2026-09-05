@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Ball {
   id: number;
+  launchedAt: number;
   x: number;
   y: number;
   vx: number;
   vy: number;
   radius: number;
   betAmount: number;
+  trail: Array<{ x: number; y: number }>;
 }
 
 interface Peg {
@@ -43,7 +45,14 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
   const ballsReference = useRef<Ball[]>([]);
   const pegsReference = useRef<Peg[]>([]);
   const ballIdReference = useRef(0);
+  const lastDropReference = useRef(0);
+  const betAmountReference = useRef(betAmount);
+  const pegGlowReference = useRef(new Map<number, number>());
+  const landingGlowReference = useRef({ slot: -1, until: 0 });
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    betAmountReference.current = betAmount;
+  }, [betAmount]);
 
   const initPegs = useCallback((width: number, height: number) => {
     const pegs: Peg[] = [];
@@ -74,7 +83,7 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
     if (!canvas) return;
 
     const updateSize = () => {
-      const rect = canvas.getBoundingClientRect();
+      const rect = { width: canvas.clientWidth, height: canvas.clientHeight };
       canvas.width = rect.width;
       canvas.height = rect.height;
       setDimensions({ width: rect.width, height: rect.height });
@@ -82,25 +91,29 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
     };
 
     updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(canvas);
+    return () => observer.disconnect();
   }, [initPegs]);
 
   useEffect(() => {
-    if (dropBall === 0 || !dimensions.width) return;
+    if (dropBall === 0 || !dimensions.width || dropBall === lastDropReference.current) return;
+    lastDropReference.current = dropBall;
 
     const newBall: Ball = {
       id: ++ballIdReference.current,
+      launchedAt: performance.now(),
       x: dimensions.width / 2 + (Math.random() - 0.5) * 20,
       y: 8,
       vx: 0,
       vy: 0,
       radius: 5,
-      betAmount
+      betAmount: betAmountReference.current,
+      trail: []
     };
 
     ballsReference.current.push(newBall);
-  }, [dropBall, dimensions.width, betAmount]);
+  }, [dropBall, dimensions.width]);
 
   useEffect(() => {
     if (!dimensions.width || !dimensions.height) return;
@@ -116,7 +129,11 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
     const BOUNCE = 0.7;
     const slotWidth = width / MULTIPLIERS.length;
 
+    let previousFrame = performance.now();
     const animate = () => {
+      const frameTime = performance.now();
+      const frameScale = Math.min(2, (frameTime - previousFrame) / (1000 / 60));
+      previousFrame = frameTime;
       context.clearRect(0, 0, width, height);
 
       for (const [index, mult] of MULTIPLIERS.entries()) {
@@ -130,21 +147,25 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
         context.fillText(`${mult}x`, index * slotWidth + slotWidth / 2, height - 6);
       }
 
-      for (const peg of pegsReference.current) {
+      const now = performance.now();
+      for (const [pegIndex, peg] of pegsReference.current.entries()) {
+        const glow = pegGlowReference.current.get(pegIndex) ?? 0;
         context.beginPath();
-        context.arc(peg.x, peg.y, peg.radius, 0, Math.PI * 2);
-        context.fillStyle = '#a78bfa';
+        context.arc(peg.x, peg.y, peg.radius + (glow > now ? 3 : 0), 0, Math.PI * 2);
+        context.fillStyle = glow > now ? '#fbbf24' : '#a78bfa';
         context.fill();
       }
 
       const completedBalls: Ball[] = [];
 
       for (const ball of ballsReference.current) {
-        ball.vy += GRAVITY;
-        ball.x += ball.vx;
-        ball.y += ball.vy;
+        ball.vy += GRAVITY * frameScale;
+        ball.x += ball.vx * frameScale;
+        ball.y += ball.vy * frameScale;
+        ball.trail.push({ x: ball.x, y: ball.y });
+        if (ball.trail.length > 8) ball.trail.shift();
 
-        for (const peg of pegsReference.current) {
+        for (const [pegIndex, peg] of pegsReference.current.entries()) {
           const dx = ball.x - peg.x;
           const dy = ball.y - peg.y;
           const distribution = Math.hypot(dx, dy);
@@ -159,6 +180,7 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
 
             ball.x = peg.x + (minDistribution + 1) * Math.cos(angle);
             ball.y = peg.y + (minDistribution + 1) * Math.sin(angle);
+            pegGlowReference.current.set(pegIndex, now + 120);
           }
         }
 
@@ -171,6 +193,12 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
           ball.vx = -Math.abs(ball.vx) * BOUNCE;
         }
 
+        for (const [trailIndex, trailPoint] of ball.trail.entries()) {
+          context.beginPath();
+          context.arc(trailPoint.x, trailPoint.y, (trailIndex + 1) / 3, 0, Math.PI * 2);
+          context.fillStyle = `rgba(251, 191, 36, ${(trailIndex + 1) / (ball.trail.length * 3)})`;
+          context.fill();
+        }
         context.beginPath();
         context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
         context.fillStyle = '#fbbf24';
@@ -179,7 +207,7 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
         context.lineWidth = 1.5;
         context.stroke();
 
-        if (ball.y >= height - 20 - ball.radius) {
+        if (ball.y >= height - 20 - ball.radius || now - ball.launchedAt >= 6000) {
           completedBalls.push(ball);
         }
       }
@@ -190,8 +218,15 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
           Math.max(0, Math.floor(ball.x / slotWidth))
         );
         const multiplier = MULTIPLIERS[slotIndex];
+        landingGlowReference.current = { slot: slotIndex, until: now + 500 };
         onResult(multiplier, ball.betAmount);
         ballsReference.current = ballsReference.current.filter((b) => b.id !== ball.id);
+      }
+
+      if (landingGlowReference.current.until > now) {
+        const slot = landingGlowReference.current.slot;
+        context.fillStyle = 'rgba(255,255,255,.5)';
+        context.fillRect(slot * slotWidth, height - 20, slotWidth, 20);
       }
 
       animationReference.current = requestAnimationFrame(animate);

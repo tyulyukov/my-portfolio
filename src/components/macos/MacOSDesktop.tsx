@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { AnimatePresence, motion } from 'motion/react';
 import { createPortal } from 'react-dom';
 
@@ -30,7 +32,8 @@ function FullScreenWindow({
       <div className='flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-3'>
         <button
           onClick={onClose}
-          className='group flex h-3 w-3 items-center justify-center rounded-full bg-red-500/80 transition-all hover:bg-red-500'
+          aria-label={`Close ${title}`}
+          className='group flex h-3 w-3 items-center justify-center rounded-full bg-red-500/80 transition-all hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
         >
           <span className='hidden text-[8px] leading-none text-red-900 group-hover:block'>×</span>
         </button>
@@ -45,6 +48,21 @@ function FullScreenWindow({
 
 function MacOSDesktopInner() {
   const { openWindows, gamePhase, openApp, closeWindow } = useMacOS();
+
+  const overlayOpen = gamePhase !== 'normal';
+  useEffect(() => {
+    if (!overlayOpen) return;
+    const root = document.getElementById('root');
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    if (root) root.inert = true;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      if (root) root.inert = false;
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+    };
+  }, [overlayOpen]);
 
   const activeWindow = openWindows.at(-1);
 
@@ -84,7 +102,7 @@ function MacOSDesktopInner() {
 
   return (
     <>
-      <div className='relative overflow-hidden rounded-xl border border-violet-500/20 bg-gradient-to-br from-violet-950 via-purple-900 to-blue-950 shadow-2xl shadow-violet-500/10'>
+      <div className='relative w-full max-w-[440px] overflow-hidden rounded-xl border border-violet-500/20 bg-gradient-to-br from-violet-950 via-purple-900 to-blue-950 shadow-2xl shadow-violet-500/10'>
         <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,58,237,0.15),transparent_50%)]' />
         <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(59,130,246,0.1),transparent_50%)]' />
 
@@ -96,23 +114,9 @@ function MacOSDesktopInner() {
           </span>
         </div>
 
-        <div className='p-4'>
-          <pre className='pointer-events-none select-none font-mono text-xs leading-relaxed text-transparent md:text-sm'>
-            {`$ neofetch --dev
-╭───────────────────────────╮
-│    ███╗   ███╗████████╗   │
-│    ████╗ ████║╚══██╔══╝   │
-│    ██╔████╔██║   ██║      │
-│    ██║╚██╔╝██║   ██║      │
-│    ██║ ╚═╝ ██║   ██║      │
-│    ╚═╝     ╚═╝   ╚═╝      │
-╰───────────────────────────╯
-  Age: 19
-  Location: Odesa, Ukraine
-  Languages: Ukrainian (native), English (B2)
-  Stack: Node.js · TypeScript · AWS
-  Passionate: true`}
-          </pre>
+        <div className='flex h-[320px] flex-col items-center justify-center text-white/50'>
+          <p className='font-display text-5xl font-semibold tracking-tight'>mTOS</p>
+          <p className='mt-2 font-mono text-xs'>very serious operating system</p>
         </div>
 
         <div className='border-t border-white/10 bg-white/5 px-4 py-2'>

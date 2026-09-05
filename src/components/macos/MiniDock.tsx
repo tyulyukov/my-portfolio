@@ -25,9 +25,10 @@ export default function MiniDock({ onOpenApp }: MiniDockProperties) {
         <motion.button
           key={item.id}
           onClick={() => onOpenApp(item.id)}
+          aria-label={`Open ${item.label}`}
           whileHover={{ scale: 1.15, y: -2 }}
           whileTap={{ scale: 0.95 }}
-          className='group relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-b from-white/10 to-white/5 text-sm shadow-lg transition-colors hover:from-white/15 hover:to-white/10'
+          className='group relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-b from-white/10 to-white/5 text-sm shadow-lg transition-colors hover:from-white/15 hover:to-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
           title={item.label}
         >
           {item.icon}

@@ -25,6 +25,7 @@ export interface MacOSContextValue extends MacOSState {
   markCasinoPlayed: () => void;
   triggerExplosion: () => void;
   showDinoGame: () => void;
+  returnToDesktop: () => void;
 }
 
 export interface DockItem {

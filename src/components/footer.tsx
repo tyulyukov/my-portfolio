@@ -1,46 +1,21 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
 import { profile } from '@/data/profile';
 
 export default function Footer() {
-  const year = new Date().getFullYear();
-
   return (
-    <footer className='relative border-t border-violet-500/10 pb-32'>
-      <div className='mx-auto max-w-6xl px-4 py-12'>
-        <div className='flex flex-col items-center justify-between gap-8 md:flex-row'>
-          <div className='flex flex-col items-center gap-2 md:items-start'>
-            <p className='font-mono text-sm'>
-              <span className='text-violet-400'>const</span>{' '}
-              <span className='text-foreground'>developer</span>{' '}
-              <span className='text-muted-foreground'>=</span>{' '}
-              <span className='text-amber-300'>&quot;{profile.name}&quot;</span>
-              <span className='text-muted-foreground'>;</span>
-            </p>
-            <p className='text-sm text-muted-foreground'>Backend Engineer & AI Enthusiast</p>
-          </div>
-
-          <div className='flex items-center gap-4'>
-            {profile.contacts.map((c) => (
-              <a
-                key={c.href}
-                href={c.href}
-                target='_blank'
-                rel='noreferrer'
-                aria-label={c.label}
-                className='flex h-10 w-10 items-center justify-center rounded-lg border border-violet-500/20 bg-violet-500/5 text-muted-foreground transition-all duration-300 hover:border-violet-500/40 hover:bg-violet-500/10 hover:text-violet-400'
-              >
-                <FontAwesomeIcon icon={c.icon} className='h-4 w-4' />
-              </a>
-            ))}
-          </div>
+    <footer className='border-t border-border'>
+      <div className='mx-auto flex max-w-6xl flex-col justify-between gap-8 px-5 py-12 sm:px-8 md:flex-row md:items-end'>
+        <div>
+          <p className='text-2xl font-semibold tracking-tight'>Got something worth shipping?</p>
+          <a
+            href={profile.contacts[0].href}
+            className='mt-3 inline-block text-violet-400 underline-offset-4 hover:underline'
+          >
+            {profile.contacts[0].href.replace('mailto:', '')}
+          </a>
         </div>
-
-        <div className='mt-8 flex justify-center border-t border-white/5 pt-8 md:justify-start'>
-          <p className='font-mono text-xs text-muted-foreground'>
-            <span className='text-violet-400'>&copy;</span> {year} · {profile.name}
-          </p>
-        </div>
+        <p className='text-xs text-muted-foreground'>
+          © {new Date().getFullYear()} {profile.name}. Probably building something.
+        </p>
       </div>
     </footer>
   );

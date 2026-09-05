@@ -97,6 +97,10 @@ export function MacOSProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const returnToDesktop = useCallback(() => {
+    setState((previous) => ({ ...previous, gamePhase: 'normal' }));
+  }, []);
+
   const value: MacOSContextValue = {
     ...state,
     openApp,
@@ -105,7 +109,8 @@ export function MacOSProvider({ children }: { children: ReactNode }) {
     updateBalance,
     markCasinoPlayed,
     triggerExplosion,
-    showDinoGame
+    showDinoGame,
+    returnToDesktop
   };
 
   return <MacOSContext.Provider value={value}>{children}</MacOSContext.Provider>;

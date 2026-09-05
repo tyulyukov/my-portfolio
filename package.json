@@ -19,7 +19,8 @@
     "lint:fix": "eslint --ext ts --ext tsx ./src --fix",
     "prettier": "prettier --write **/**/*.{html,css,scss,js,cjs,mjs,ts,tsx}",
     "test": "playwright test",
-    "test:ui": "playwright test --ui"
+    "test:ui": "playwright test --ui",
+    "build:avatar": "blender --background --python scripts/build-avatar.py"
   },
   "dependencies": {
     "@codaworks/react-glow": "^1.0.6",
@@ -56,6 +57,7 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@types/react-router-dom": "^5.3.3",
+    "@types/three": "^0.167.2",
     "@typescript-eslint/eslint-plugin": "^8.26.0",
     "@typescript-eslint/parser": "^8.26.0",
     "@vitejs/plugin-react-swc": "^3.8.0",
