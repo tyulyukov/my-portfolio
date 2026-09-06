@@ -30,23 +30,24 @@ export default function TerminalApp() {
     let index = 0;
     let cursorTimer: ReturnType<typeof setTimeout> | undefined;
     const typeTimer = setInterval(() => {
-      setDisplayedText(neofetch.slice(0, ++index));
+      setDisplayedText(neofetch.slice(0, (index += 3)));
       if (index >= neofetch.length) {
         clearInterval(typeTimer);
         cursorTimer = setTimeout(() => setShowCursor(false), 1000);
       }
-    }, 8);
+    }, 24);
     return () => {
       clearInterval(typeTimer);
       clearTimeout(cursorTimer);
     };
   }, []);
   return (
-    <div className='h-full overflow-auto bg-[#151719] p-4'>
-      <pre
-        aria-label='Terminal output'
-        className='min-w-max font-mono text-xs leading-relaxed text-violet-200 md:text-sm'
-      >
+    <div
+      role='region'
+      aria-label='Terminal output'
+      className='h-full overflow-auto bg-[#151719] p-4'
+    >
+      <pre className='min-w-max font-mono text-xs leading-relaxed text-violet-200 md:text-sm'>
         {displayedText}
         {showCursor && (
           <span aria-hidden='true' className='animate-pulse motion-reduce:animate-none'>

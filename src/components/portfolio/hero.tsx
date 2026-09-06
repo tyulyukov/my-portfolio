@@ -1,9 +1,10 @@
-import { lazy, Suspense, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import type { AvatarHandle } from './avatar-3d';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ArrowDown, Terminal } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 import { avatarAssets } from '@/data/avatar';
 import { profile } from '@/data/profile';
@@ -11,11 +12,45 @@ import { profile } from '@/data/profile';
 const Avatar3D = lazy(() => import('./avatar-3d'));
 const MacOSDesktop = lazy(() => import('@/components/macos/MacOSDesktop'));
 
+function DesktopLoading({ onClose }: { onClose: () => void }) {
+  const dialogReference = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogReference.current;
+    dialog?.showModal();
+    return () => dialog?.close();
+  }, []);
+  return createPortal(
+    <dialog
+      ref={dialogReference}
+      aria-label='Loading mTOS'
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      className='fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-[#161325] p-0 text-white'
+    >
+      <div
+        className='grid h-full place-content-center gap-5 text-center'
+        style={{ background: `url(${avatarAssets.wallpaper}) center / cover` }}
+      >
+        <p role='status' className='rounded-xl bg-black/70 px-6 py-4'>
+          Opening mTOS...
+        </p>
+        <button onClick={onClose} className='rounded-xl bg-black/70 px-6 py-3'>
+          Cancel
+        </button>
+      </div>
+    </dialog>,
+    document.body
+  );
+}
+
 export default function Hero() {
   const [desktopOpen, setDesktopOpen] = useState(false);
   const avatarReference = useRef<AvatarHandle>(null);
   const desktopButtonReference = useRef<HTMLButtonElement>(null);
   const closeDesktop = () => {
+    avatarReference.current?.finishEntry();
     setDesktopOpen(false);
     requestAnimationFrame(() => desktopButtonReference.current?.focus());
   };
@@ -76,6 +111,7 @@ export default function Hero() {
                 desktopOpen={desktopOpen}
                 ref={avatarReference}
                 onEnterDesktop={() => setDesktopOpen(true)}
+                onCancelDesktop={closeDesktop}
               />
             </Suspense>
           </div>
@@ -83,20 +119,22 @@ export default function Hero() {
             <button
               type='button'
               ref={desktopButtonReference}
-              aria-expanded={desktopOpen}
               aria-haspopup='dialog'
               onClick={openDesktop}
               className='inline-flex min-h-11 items-center gap-2 rounded-md px-3 font-mono text-xs text-muted-foreground hover:text-violet-400'
             >
               <Terminal aria-hidden='true' className='h-4 w-4' />
-              {desktopOpen ? 'close my desktop' : 'psst. open my desktop'}
+              psst. open my desktop
             </button>
           </div>
         </div>
       </div>
       {desktopOpen && (
-        <Suspense fallback={<p role='status'>Booting mTOS...</p>}>
-          <MacOSDesktop onClose={closeDesktop} />
+        <Suspense fallback={<DesktopLoading onClose={closeDesktop} />}>
+          <MacOSDesktop
+            onClose={closeDesktop}
+            onReady={() => avatarReference.current?.finishEntry()}
+          />
         </Suspense>
       )}
       <a

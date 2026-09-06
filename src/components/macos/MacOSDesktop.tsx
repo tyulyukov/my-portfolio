@@ -27,7 +27,7 @@ const content: Record<AppId, () => ReactElement> = {
   chatgbt: ChatGBTApp,
   casino: CasinoApp
 };
-const sizes = {
+const sizes: Record<AppId, { width: number; height: number; top: number }> = {
   terminal: { width: 600, height: 420, top: 28 },
   chatgbt: { width: 760, height: 570, top: 58 },
   casino: { width: 860, height: 600, top: 88 }
@@ -132,8 +132,12 @@ function AppWindow({
   );
 }
 
-function Shell({ onClose }: { onClose: () => void }) {
+function Shell({ onClose, onReady }: { onClose: () => void; onReady: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const onReadyReference = useRef(onReady);
+  onReadyReference.current = onReady;
+  const appsButtonReference = useRef<HTMLButtonElement>(null);
+  const menuReference = useRef<HTMLDivElement>(null);
   const shellReference = useRef<HTMLDivElement>(null);
   const previousControl = useRef<HTMLElement | undefined>(undefined);
   const workarea = useRef<HTMLDivElement>(null);
@@ -141,12 +145,18 @@ function Shell({ onClose }: { onClose: () => void }) {
   const [clock, setClock] = useState('');
   const { openWindows, focusedWindowId, openApp, gamePhase } = useMacOS();
   const focused = openWindows.find((item) => item.id === focusedWindowId);
+  const closeAppsMenu = () => {
+    if (menuReference.current?.contains(document.activeElement))
+      appsButtonReference.current?.focus();
+    setAppsOpen(false);
+  };
   const overlay = gamePhase !== 'normal';
   useEffect(() => {
     const node = dialog.current;
+    node?.showModal();
+    onReadyReference.current();
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    node?.showModal();
     const update = () =>
       setClock(
         new Intl.DateTimeFormat(undefined, {
@@ -176,12 +186,12 @@ function Shell({ onClose }: { onClose: () => void }) {
       onKeyDownCapture={(event) => {
         if (event.key === 'Escape' && (overlay || appsOpen)) {
           event.preventDefault();
-          if (appsOpen) setAppsOpen(false);
+          if (appsOpen) closeAppsMenu();
         }
       }}
       onCancel={(event) => {
         event.preventDefault();
-        if (appsOpen) setAppsOpen(false);
+        if (appsOpen) closeAppsMenu();
         else if (!overlay) onClose();
       }}
       className='mtos-dialog'
@@ -191,7 +201,7 @@ function Shell({ onClose }: { onClose: () => void }) {
         className='mtos-shell'
         onPointerDownCapture={(event) => {
           if (appsOpen && event.target instanceof Element && !event.target.closest('.mtos-menubar'))
-            setAppsOpen(false);
+            closeAppsMenu();
         }}
         onFocusCapture={(event) => {
           previousControl.current = event.target;
@@ -199,6 +209,7 @@ function Shell({ onClose }: { onClose: () => void }) {
       >
         <header className='mtos-menubar'>
           <button
+            ref={appsButtonReference}
             onClick={() => setAppsOpen((open) => !open)}
             aria-expanded={appsOpen}
             aria-controls={appsOpen ? 'mtos-apps-menu' : undefined}
@@ -209,13 +220,13 @@ function Shell({ onClose }: { onClose: () => void }) {
           </button>
           {appsOpen && (
             <>
-              <div id='mtos-apps-menu' className='mtos-apps-menu'>
+              <div ref={menuReference} id='mtos-apps-menu' className='mtos-apps-menu'>
                 {(['terminal', 'chatgbt', 'casino'] as AppId[]).map((app) => (
                   <button
                     key={app}
                     onClick={() => {
                       openApp(app);
-                      setAppsOpen(false);
+                      closeAppsMenu();
                     }}
                   >
                     {titles[app]}
@@ -250,10 +261,16 @@ function Shell({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function MacOSDesktop({ onClose }: { onClose: () => void }) {
+export default function MacOSDesktop({
+  onClose,
+  onReady
+}: {
+  onClose: () => void;
+  onReady: () => void;
+}) {
   return (
     <MacOSProvider>
-      <Shell onClose={onClose} />
+      <Shell onClose={onClose} onReady={onReady} />
     </MacOSProvider>
   );
 }

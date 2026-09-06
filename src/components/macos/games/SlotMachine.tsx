@@ -68,7 +68,7 @@ export default function SlotMachine({
           {reels.map((symbol, index) => (
             <div
               key={index}
-              className='grid h-[clamp(80px,15vh,140px)] w-[clamp(58px,12vw,110px)] place-items-center rounded-lg bg-white text-5xl shadow-inner'
+              className='grid h-[clamp(80px,15vh,140px)] w-[clamp(58px,12vw,110px)] place-items-center rounded-lg bg-white text-5xl font-bold text-[#173b31] shadow-inner'
             >
               {symbol}
             </div>

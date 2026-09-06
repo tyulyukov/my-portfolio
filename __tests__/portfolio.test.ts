@@ -44,7 +44,7 @@ test('desktop entry can cancel, restore the canvas, then complete into the nativ
   await expect(page.getByRole('img', { name: /3D portrait/ }).locator('canvas')).toBeVisible();
   await page.getByRole('button', { name: 'psst. open my desktop' }).click();
   await expect(page.getByRole('dialog', { name: 'mTOS desktop' })).toBeVisible({ timeout: 5_000 });
-  await expect(page.getByRole('region', { name: 'Terminal' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Terminal', exact: true })).toBeVisible();
 });
 
 test('casino charges immediately, locks game controls, and settles exactly once after resize', async ({
@@ -53,7 +53,7 @@ test('casino charges immediately, locks game controls, and settles exactly once 
   await openCasino(page);
   const casino = page.getByRole('region', { name: 'Lucky Arcade' });
   const balance = casino.getByLabel('Credit balance');
-  const status = casino.getByRole('status');
+  const status = casino.getByRole('status', { name: 'Game result' });
   await expect(balance).toHaveText('100');
   await expect(casino.getByText(/fake credits/i)).toHaveCount(0);
   await expect(casino.getByRole('button', { name: /Withdraw|Copy/ })).toHaveCount(0);
@@ -74,10 +74,67 @@ test('casino charges immediately, locks game controls, and settles exactly once 
   const settledBalance = await balance.textContent();
   await page.waitForTimeout(750);
   await expect(balance).toHaveText(settledBalance!);
+  const afterFirstDrop = Number(await balance.textContent());
+  await casino.getByRole('button', { name: 'Plinko' }).click();
+  await casino.getByRole('button', { name: 'Drop ball' }).click();
+  await expect(balance).toHaveText(String(afterFirstDrop - 10));
+  await expect(casino.getByRole('button', { name: 'Ball in play...' })).toBeDisabled();
+  await expect(casino.getByRole('button', { name: 'Drop ball' })).toBeEnabled({ timeout: 8_000 });
   await casino.getByRole('button', { name: 'Slots' }).click();
   await casino.getByRole('button', { name: 'Plinko' }).click();
-  await expect(casino.getByRole('button', { name: 'Drop ball' })).toBeEnabled();
+  const beforeThirdDrop = Number(await balance.textContent());
+  await casino.getByRole('button', { name: 'Drop ball' }).click();
+  await expect(balance).toHaveText(String(beforeThirdDrop - 10));
+  await expect(casino.getByRole('button', { name: 'Ball in play...' })).toBeDisabled();
+  await expect(casino.getByRole('button', { name: 'Drop ball' })).toBeEnabled({ timeout: 8_000 });
   await expect(status).toContainText(/credits returned|board took/);
+});
+
+test('the laptop itself opens the desktop', async ({ page }) => {
+  await page.goto(site);
+  await page.getByRole('button', { name: 'Pause avatar rotation' }).click();
+  const portrait = page.getByRole('img', { name: /3D portrait/ });
+  const box = await portrait.boundingBox();
+  if (!box) throw new Error('Portrait has no size');
+  await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.69);
+  await expect(page.getByRole('dialog', { name: 'Opening mTOS' })).toBeVisible();
+  await page.getByRole('button', { name: 'Skip to desktop' }).click();
+  await expect(page.getByRole('dialog', { name: 'mTOS desktop' })).toBeVisible();
+});
+
+test('Apps menu supports keyboard close and focus restoration', async ({ page }) => {
+  await openDesktop(page);
+  const apps = page.getByRole('button', { name: /Apps/ });
+  await apps.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Terminal', exact: true })).toBeVisible();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Terminal', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Terminal', exact: true })).toHaveCount(0);
+  await expect(apps).toBeFocused();
+});
+
+test('cancelling a delayed desktop handoff cannot open mTOS later', async ({ page }) => {
+  let releaseModule = () => {};
+  const moduleReady = new Promise<void>((resolve) => {
+    releaseModule = resolve;
+  });
+  await page.route('**/src/components/macos/MacOSDesktop.tsx*', async (route) => {
+    await moduleReady;
+    await route.continue();
+  });
+  await page.goto(site);
+  await page.getByRole('button', { name: 'Pause avatar rotation' }).click();
+  await page.getByRole('button', { name: 'psst. open my desktop' }).click();
+  await page.getByRole('button', { name: 'Skip to desktop' }).click();
+  const loading = page.getByRole('dialog', { name: 'Loading mTOS' });
+  await expect(loading).toBeVisible();
+  await loading.getByRole('button', { name: 'Cancel' }).click();
+  releaseModule();
+  await expect(page.getByRole('button', { name: 'psst. open my desktop' })).toBeFocused();
+  await expect(page.getByRole('dialog', { name: 'mTOS desktop' })).toHaveCount(0);
+  await page.unroute('**/src/components/macos/MacOSDesktop.tsx*');
 });
 
 test('ChatGBT cancels a pending reply, restores history, and survives minimize and dock restore', async ({
@@ -118,7 +175,7 @@ test('windows drag, maximize, minimize, and fit after a mobile resize', async ({
   await openDesktop(page);
   await page.getByRole('button', { name: 'Open ChatGBT' }).click();
   await page.getByRole('button', { name: 'Open Casino' }).click();
-  const terminal = page.getByRole('region', { name: 'Terminal' });
+  const terminal = page.getByRole('region', { name: 'Terminal', exact: true });
   const before = await terminal.boundingBox();
   const titlebar = terminal.locator('.mtos-titlebar');
   const titlebarBox = await titlebar.boundingBox();

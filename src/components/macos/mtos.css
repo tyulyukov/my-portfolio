@@ -15,6 +15,7 @@
   backdrop-filter: blur(8px);
 }
 .mtos-shell {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -79,7 +80,6 @@
 }
 .mtos-window {
   position: absolute;
-  top: 24px;
   display: flex;
   min-height: 0;
   flex-direction: column;

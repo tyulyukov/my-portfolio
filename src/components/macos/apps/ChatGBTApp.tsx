@@ -126,6 +126,24 @@ export default function ChatGBTApp() {
               ChatGBT <span className='font-normal text-zinc-400'>3.5ish</span>
             </span>
           </div>
+          {history.length > 0 && (
+            <select
+              aria-label='Chat history'
+              value=''
+              disabled={isTyping}
+              onChange={(event) => restoreConversation(Number(event.target.value))}
+              className='ml-auto max-w-28 rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs sm:hidden'
+            >
+              <option value='' disabled>
+                History
+              </option>
+              {history.map((conversation) => (
+                <option key={conversation.id} value={conversation.id}>
+                  {conversation.messages.find((message) => message.role === 'user')?.content}
+                </option>
+              ))}
+            </select>
+          )}
           <button
             onClick={newChat}
             className='rounded-md px-2 py-1 text-[11px] text-zinc-500 transition hover:bg-zinc-100 sm:hidden'

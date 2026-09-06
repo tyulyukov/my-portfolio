@@ -23,6 +23,7 @@ export function enterLaptop({
   renderer,
   target,
   onComplete,
+  onCancel,
   onRestore
 }: {
   model: THREE.Object3D;
@@ -30,6 +31,7 @@ export function enterLaptop({
   renderer: THREE.WebGLRenderer;
   target: THREE.Vector3;
   onComplete: () => void;
+  onCancel: () => void;
   onRestore: () => void;
 }) {
   const screen = model.getObjectByName('mtos_screen');
@@ -78,15 +80,22 @@ export function enterLaptop({
     document.body.style.overflow = previousOverflow;
     onRestore();
   };
+  let completed = false;
   const finish = () => {
-    restore();
+    if (completed) return;
+    completed = true;
+    cancelAnimationFrame(frame);
     onComplete();
   };
-  cancel.addEventListener('click', restore);
+  const cancelEntry = () => {
+    restore();
+    onCancel();
+  };
+  cancel.addEventListener('click', cancelEntry);
   skip.addEventListener('click', finish);
   dialog.addEventListener('cancel', (event) => {
     event.preventDefault();
-    restore();
+    cancelEntry();
   });
   model.updateMatrixWorld(true);
   const center = screen.getWorldPosition(new THREE.Vector3());
@@ -101,7 +110,7 @@ export function enterLaptop({
   );
   const started = performance.now();
   const animate = (now: number) => {
-    if (restored) return;
+    if (restored || completed) return;
     const progress = Math.min((now - started) / 2200, 1);
     const eased = progress * progress * (3 - 2 * progress);
     const expansion = Math.min(eased * 2, 1);

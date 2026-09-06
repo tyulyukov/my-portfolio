@@ -45,7 +45,7 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
   const ballsReference = useRef<Ball[]>([]);
   const pegsReference = useRef<Peg[]>([]);
   const ballIdReference = useRef(0);
-  const lastDropReference = useRef(0);
+  const lastDropReference = useRef(dropBall);
   const betAmountReference = useRef(betAmount);
   const pegGlowReference = useRef(new Map<number, number>());
   const landingGlowReference = useRef({ slot: -1, until: 0 });
@@ -89,6 +89,7 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
         width: Math.floor(canvas.clientWidth),
         height: Math.floor(canvas.clientHeight)
       };
+      if (!rect.width || !rect.height) return;
       const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = rect.width * pixelRatio;
       canvas.height = rect.height * pixelRatio;
@@ -248,7 +249,9 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
         context.fillRect(slot * slotWidth, height - 20, slotWidth, 20);
       }
 
-      animationReference.current = requestAnimationFrame(animate);
+      if (ballsReference.current.length > 0 || landingGlowReference.current.until > now) {
+        animationReference.current = requestAnimationFrame(animate);
+      }
     };
 
     animationReference.current = requestAnimationFrame(animate);
@@ -256,12 +259,13 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
     return () => {
       cancelAnimationFrame(animationReference.current);
     };
-  }, [dimensions, onResult]);
+  }, [dimensions, onResult, dropBall]);
 
   return (
     <canvas
       ref={canvasReference}
       className='h-full min-h-[210px] w-full rounded-xl'
+      role='img'
       aria-label='Plinko board'
     />
   );

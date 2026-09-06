@@ -30,17 +30,23 @@ const dispose = (object: THREE.Object3D) => {
 
 export interface AvatarHandle {
   enterDesktop: () => void;
+  finishEntry: () => void;
 }
 
 export default function Avatar3D({
   ref,
   onEnterDesktop,
+  onCancelDesktop,
   desktopOpen
 }: {
   ref?: React.Ref<AvatarHandle>;
   onEnterDesktop: () => void;
+  onCancelDesktop: () => void;
   desktopOpen: boolean;
 }) {
+  const restoreEntryReference = useRef<(() => void) | undefined>(undefined);
+  const onCancelReference = useRef(onCancelDesktop);
+  onCancelReference.current = onCancelDesktop;
   const desktopOpenReference = useRef(desktopOpen);
   desktopOpenReference.current = desktopOpen;
   const onEnterReference = useRef(onEnterDesktop);
@@ -50,7 +56,8 @@ export default function Avatar3D({
     ref,
     () => ({
       enterDesktop: () =>
-        entryReference.current ? entryReference.current() : onEnterReference.current()
+        entryReference.current ? entryReference.current() : onEnterReference.current(),
+      finishEntry: () => restoreEntryReference.current?.()
     }),
     []
   );
@@ -75,7 +82,6 @@ export default function Avatar3D({
     let sceneObject: THREE.Object3D | undefined;
     let shadowRotation: number | undefined;
     let entering = false;
-    let restoreEntry: (() => void) | undefined;
     const mediaQuery = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
@@ -224,12 +230,13 @@ export default function Avatar3D({
           }
           entering = true;
           controls.enabled = false;
-          restoreEntry = enterLaptop({
+          restoreEntryReference.current = enterLaptop({
             model,
             camera,
             renderer,
             target: controls.target,
             onComplete: () => onEnterReference.current(),
+            onCancel: () => onCancelReference.current(),
             onRestore: () => {
               entering = false;
               controls.enabled = true;
@@ -245,7 +252,8 @@ export default function Avatar3D({
       }
     );
     return () => {
-      restoreEntry?.();
+      restoreEntryReference.current?.();
+      restoreEntryReference.current = undefined;
       entryReference.current = undefined;
       active = false;
       cancelAnimationFrame(frame);

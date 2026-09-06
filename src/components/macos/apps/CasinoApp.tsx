@@ -33,7 +33,7 @@ export default function CasinoApp() {
       updateBalance(payout);
       setResult(
         payout
-          ? `${multiplier}× landed. ${payout} credits returned.`
+          ? `${multiplier}× landed. ${payout} ${payout === 1 ? 'credit' : 'credits'} returned.`
           : 'The board took it personally.'
       );
       busyReference.current = false;
@@ -56,15 +56,14 @@ export default function CasinoApp() {
         </div>
         <div className='rounded-lg border border-[#d7ba70] bg-[#f7e6b6] px-2.5 py-1 text-right'>
           <p className='text-[9px] uppercase tracking-wider text-[#806c38]'>Credits</p>
-          <p aria-label='Credit balance' className='font-mono text-sm font-bold'>
+          <output aria-label='Credit balance' className='block font-mono text-sm font-bold'>
             {casinoBalance}
-          </p>
+          </output>
         </div>
       </header>
       <div className='flex shrink-0 gap-1 border-b border-[#d4bd82] bg-[#eee0bb] px-3 pt-2'>
         <button
           onClick={() => {
-            setDropCounter(0);
             setGame('plinko');
           }}
           disabled={isBusy}
@@ -97,6 +96,7 @@ export default function CasinoApp() {
       </div>
       <div
         role='status'
+        aria-label='Game result'
         aria-live='polite'
         className='mx-3 mb-2 rounded-md bg-[#e4d3a1] px-2 py-1.5 text-center text-[11px] text-[#5c5139]'
       >
