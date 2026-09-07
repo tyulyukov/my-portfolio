@@ -22,4 +22,4 @@ This rebuilds `public/avatar.glb` and `public/avatar-3d.webp` from `scripts/buil
 
 When replacing the model, update the version keys in `src/data/avatar.ts`. Both portrait fallbacks use that file.
 
-The revised model follows the original emoji and an [Image Gen character reference](scripts/reference/avatar-concept.png). It keeps the swept blond hair, glasses, AirPods, and silver laptop with an inlaid Apple silhouette. The reference is a design asset; the website renders the Blender geometry.
+The avatar was rebuilt from the owner's portrait references in the Apple laptop emoji's typing pose. It has a slim face, round wire glasses, a swept ash-blond fringe, a charcoal T-shirt, and a silver MacBook. The website renders Blender geometry. The [character reference](scripts/reference/avatar-concept.png) is concept art only; original photos are not published.
