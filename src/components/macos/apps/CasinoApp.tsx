@@ -14,10 +14,16 @@ export default function CasinoApp() {
   const [game, setGame] = useState<Game>('plinko');
   const [isBusy, setIsBusy] = useState(false);
   const [result, setResult] = useState('Pick a game and make it interesting.');
-  const busyReference = useRef(false);
+  const activeBetsReference = useRef(0);
+  const balanceReference = useRef(casinoBalance);
   const startBet = () => {
-    if (busyReference.current || betAmount > casinoBalance) return false;
-    busyReference.current = true;
+    if (
+      (game === 'slots' && activeBetsReference.current > 0) ||
+      betAmount > balanceReference.current
+    )
+      return false;
+    activeBetsReference.current += 1;
+    balanceReference.current -= betAmount;
     updateBalance(-betAmount);
     markCasinoPlayed();
     setIsBusy(true);
@@ -30,19 +36,21 @@ export default function CasinoApp() {
   const finish = useCallback(
     (multiplier: number, originalBet: number) => {
       const payout = originalBet * multiplier;
+      balanceReference.current += payout;
       updateBalance(payout);
       setResult(
         payout
           ? `${multiplier}× landed. ${payout} ${payout === 1 ? 'credit' : 'credits'} returned.`
           : 'The board took it personally.'
       );
-      busyReference.current = false;
-      setIsBusy(false);
+      activeBetsReference.current -= 1;
+      setIsBusy(activeBetsReference.current > 0);
     },
     [updateBalance]
   );
   const borrow = () => {
-    if (!isBusy && casinoBalance < 5) {
+    if (activeBetsReference.current === 0 && balanceReference.current < 5) {
+      balanceReference.current += 100;
       updateBalance(100);
       setResult('A discreet 100-credit loan appeared under the felt.');
     }
@@ -129,11 +137,10 @@ export default function CasinoApp() {
           <button
             hidden={game !== 'plinko'}
             onClick={drop}
-            disabled={game !== 'plinko' || isBusy || betAmount > casinoBalance}
+            disabled={game !== 'plinko' || betAmount > casinoBalance}
             className='flex-1 rounded-lg bg-[#08604d] py-2 text-xs font-bold text-[#fff8e4] transition hover:bg-[#0b735d] disabled:opacity-40'
           >
-            {' '}
-            {isBusy && game === 'plinko' ? 'Ball in play...' : 'Drop ball'}{' '}
+            Drop ball
           </button>
           <button
             onClick={triggerExplosion}

@@ -65,12 +65,13 @@ test('casino charges immediately, locks game controls, and settles exactly once 
   await expect(status).toContainText(/credits returned|board took/);
   await casino.getByRole('button', { name: 'Plinko' }).click();
   await casino.getByRole('button', { name: 'Drop ball' }).click();
-  await expect(casino.getByRole('button', { name: 'Ball in play...' })).toBeDisabled();
+  await expect(casino.getByRole('button', { name: 'Drop ball' })).toBeEnabled();
   await expect(casino.getByRole('button', { name: '25', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Minimize Lucky Arcade' }).click();
   await page.setViewportSize({ width: 420, height: 844 });
   await page.getByRole('button', { name: 'Open Casino' }).click();
   await expect(status).toContainText(/credits returned|board took/, { timeout: 8_000 });
+  await expect(casino.getByRole('button', { name: 'Slots' })).toBeEnabled();
   const settledBalance = await balance.textContent();
   await page.waitForTimeout(750);
   await expect(balance).toHaveText(settledBalance!);
@@ -78,16 +79,84 @@ test('casino charges immediately, locks game controls, and settles exactly once 
   await casino.getByRole('button', { name: 'Plinko' }).click();
   await casino.getByRole('button', { name: 'Drop ball' }).click();
   await expect(balance).toHaveText(String(afterFirstDrop - 10));
-  await expect(casino.getByRole('button', { name: 'Ball in play...' })).toBeDisabled();
-  await expect(casino.getByRole('button', { name: 'Drop ball' })).toBeEnabled({ timeout: 8_000 });
+  await expect(casino.getByRole('button', { name: 'Drop ball' })).toBeEnabled();
+  await expect(casino.getByRole('button', { name: 'Slots' })).toBeEnabled({ timeout: 8_000 });
   await casino.getByRole('button', { name: 'Slots' }).click();
   await casino.getByRole('button', { name: 'Plinko' }).click();
   const beforeThirdDrop = Number(await balance.textContent());
   await casino.getByRole('button', { name: 'Drop ball' }).click();
   await expect(balance).toHaveText(String(beforeThirdDrop - 10));
-  await expect(casino.getByRole('button', { name: 'Ball in play...' })).toBeDisabled();
-  await expect(casino.getByRole('button', { name: 'Drop ball' })).toBeEnabled({ timeout: 8_000 });
+  await expect(casino.getByRole('button', { name: 'Drop ball' })).toBeEnabled();
+  await expect(casino.getByRole('button', { name: 'Cash out' })).toBeEnabled({ timeout: 8_000 });
   await expect(status).toContainText(/credits returned|board took/);
+});
+
+test('Plinko accepts overlapping drops, reserves each bet, and waits for every ball', async ({
+  page
+}) => {
+  await page.addInitScript(() => {
+    let ballsThisFrame = 0;
+    let largestBallGroup = 0;
+    let arcRadius = 0;
+    const context = CanvasRenderingContext2D.prototype;
+    const originalArc = context.arc;
+    const originalClearRect = context.clearRect;
+    const originalFill = context.fill;
+
+    context.arc = function (...arguments_: Parameters<CanvasRenderingContext2D['arc']>) {
+      arcRadius = arguments_[2];
+      return originalArc.apply(this, arguments_);
+    };
+    context.clearRect = function (
+      ...arguments_: Parameters<CanvasRenderingContext2D['clearRect']>
+    ) {
+      ballsThisFrame = 0;
+      return originalClearRect.apply(this, arguments_);
+    };
+    context.fill = function (this: CanvasRenderingContext2D) {
+      if (arcRadius === 5 && this.fillStyle === '#fbbf24') {
+        ballsThisFrame += 1;
+        largestBallGroup = Math.max(largestBallGroup, ballsThisFrame);
+      }
+      return originalFill.apply(this, arguments);
+    } as typeof context.fill;
+    Object.defineProperty(window, '__largestPlinkoBallGroup', {
+      get: () => largestBallGroup
+    });
+  });
+  await openCasino(page);
+  const casino = page.getByRole('region', { name: 'Lucky Arcade' });
+  const balance = casino.getByLabel('Credit balance');
+  const dropBall = casino.getByRole('button', { name: 'Drop ball' });
+
+  await dropBall.evaluate((button) => {
+    for (let drop = 0; drop < 12; drop += 1) (button as HTMLButtonElement).click();
+  });
+
+  await expect(balance).toHaveText('0');
+  await expect(dropBall).toBeDisabled();
+  await expect(casino.getByRole('button', { name: 'Slots' })).toBeDisabled();
+  await expect(casino.getByRole('button', { name: '10', exact: true })).toBeDisabled();
+  await expect(casino.getByRole('button', { name: 'Cash out' })).toBeDisabled();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as Window & { __largestPlinkoBallGroup?: number }).__largestPlinkoBallGroup ?? 0
+      )
+    )
+    .toBeGreaterThanOrEqual(10);
+
+  await expect(casino.getByRole('button', { name: 'Cash out' })).toBeEnabled({ timeout: 8_000 });
+  const settledBalance = await balance.textContent();
+  await page.waitForTimeout(750);
+  await expect(balance).toHaveText(settledBalance!);
+  await expect(casino.getByRole('button', { name: 'Slots' })).toBeEnabled();
+  await expect(casino.getByRole('button', { name: '10', exact: true })).toBeEnabled();
+
+  const beforeNextDrop = Number(settledBalance);
+  await dropBall.click();
+  await expect(balance).toHaveText(String(beforeNextDrop - 10));
 });
 
 test('the laptop itself opens the desktop', async ({ page }) => {

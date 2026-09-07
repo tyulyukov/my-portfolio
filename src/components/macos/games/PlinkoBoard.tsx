@@ -105,21 +105,22 @@ export default function PlinkoBoard({ onResult, dropBall, betAmount }: PlinkoBoa
 
   useEffect(() => {
     if (dropBall === 0 || !dimensions.width || dropBall === lastDropReference.current) return;
-    lastDropReference.current = dropBall;
+    while (lastDropReference.current < dropBall) {
+      lastDropReference.current += 1;
+      const newBall: Ball = {
+        id: ++ballIdReference.current,
+        launchedAt: performance.now(),
+        x: dimensions.width / 2 + (Math.random() - 0.5) * 20,
+        y: 8,
+        vx: 0,
+        vy: 0,
+        radius: 5,
+        betAmount: betAmountReference.current,
+        trail: []
+      };
 
-    const newBall: Ball = {
-      id: ++ballIdReference.current,
-      launchedAt: performance.now(),
-      x: dimensions.width / 2 + (Math.random() - 0.5) * 20,
-      y: 8,
-      vx: 0,
-      vy: 0,
-      radius: 5,
-      betAmount: betAmountReference.current,
-      trail: []
-    };
-
-    ballsReference.current.push(newBall);
+      ballsReference.current.push(newBall);
+    }
   }, [dropBall, dimensions.width]);
 
   useEffect(() => {
