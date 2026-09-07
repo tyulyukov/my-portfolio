@@ -9,6 +9,7 @@ from mathutils import Matrix, Vector
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / 'public'
+LAPTOP_FORWARD = .60
 if bpy.app.version != (5, 2, 1):
     raise RuntimeError(f'Avatar rebuild requires Blender 5.2.1; found {bpy.app.version_string}')
 bpy.ops.object.select_all(action='SELECT')
@@ -166,7 +167,9 @@ for ring in range(1, 13):
     for index in boundary:
         x, y, z = face_data['vertices'][index]
         width = math.cos(t * math.pi / 2)
-        vertex = (x * width, y * width + 0.77 * math.sin(t * math.pi / 2), 3.05 + (z - 3.05) * width + max(0, z - 3.05) * 0.65 * math.sin(math.pi * t))
+        rear = math.sin(t * math.pi / 2)
+        jaw = min(1, max(0, (3.13 - z) / .58)) ** .7
+        vertex = (x * width, y * width + .65 * rear, 3.05 + (z - 3.05) * width + .10 * rear + max(0, z - 3.05) * .65 * math.sin(math.pi * t) - jaw * .22 * math.sin(math.pi * t))
         ring_indices.append(len(points))
         points.append(vertex)
         front_coordinates.append(front_uv(vertex))
@@ -174,7 +177,7 @@ for ring in range(1, 13):
         k = (j + 1) % len(boundary)
         faces.append((previous[j], previous[k], ring_indices[k], ring_indices[j]))
     previous = ring_indices
-points.append((0, 0.77, 3.05))
+points.append((0, .65, 3.15))
 front_coordinates.append(front_uv(points[-1]))
 center = len(points) - 1
 for j in range(len(boundary)):
@@ -183,7 +186,7 @@ head = projected_mesh('Maksym photo-fitted facial anatomy', points, faces, front
 head_parts = [head]
 points, faces = ([], [])
 for i in range(8):
-    z = 1.97 + i * 0.19
+    z = 2.215 + i * .155
     for j in range(48):
         t = math.tau * j / 48
         points.append((0.295 * math.sin(t), 0.1 - 0.32 * math.cos(t), z))
@@ -251,8 +254,23 @@ def bake_portrait(objects, name, resolution, tint, roughness):
     links.new(rear_weight.outputs['Fac'], rear_mix.inputs[0])
     links.new(mix.outputs[0], rear_mix.inputs[1])
     links.new(back.outputs['Color'], rear_mix.inputs[2])
+    base_color = rear_mix.outputs[0]
+    if name == 'portrait hair':
+        crown = nodes.new('ShaderNodeTexImage')
+        crown.image = bpy.data.images.load(str(REFERENCE / 'crown.png'), check_existing=True)
+        crown.extension = 'EXTEND'
+        crown_uv = nodes.new('ShaderNodeUVMap')
+        crown_uv.uv_map = 'Crown projection'
+        links.new(crown_uv.outputs['UV'], crown.inputs['Vector'])
+        crown_weight = nodes.new('ShaderNodeAttribute')
+        crown_weight.attribute_name = 'Crown weight'
+        crown_mix = nodes.new('ShaderNodeMixRGB')
+        links.new(crown_weight.outputs['Fac'], crown_mix.inputs[0])
+        links.new(base_color, crown_mix.inputs[1])
+        links.new(crown.outputs['Color'], crown_mix.inputs[2])
+        base_color = crown_mix.outputs[0]
     emission = nodes.new('ShaderNodeEmission')
-    links.new(rear_mix.outputs[0], emission.inputs['Color'])
+    links.new(base_color, emission.inputs['Color'])
     links.new(emission.outputs[0], output.inputs['Surface'])
     atlas = obj.data.uv_layers.new(name='Portrait atlas')
     obj.data.uv_layers.active = atlas
@@ -288,14 +306,14 @@ def bake_portrait(objects, name, resolution, tint, roughness):
     return obj
 head = bake_portrait(head_parts, 'portrait skin', 2048, (0.68, 0.68, 0.68), 0.88)
 hair_vertices, hair_faces = [], []
-hair_center = Vector((0, .07, 3.32))
-hair_axes = Vector((.615, .755, .64))
+hair_center = Vector((0, .03, 3.32))
+hair_axes = Vector((.615, .84, .64))
+hair_back_depth = .70
 
 
 def scalp_point(alpha, beta):
-    point=hair_center+Vector((hair_axes.x*math.sin(beta)*math.sin(alpha),-hair_axes.y*math.sin(beta)*math.cos(alpha),hair_axes.z*math.cos(beta)))
-    normal=Vector(((point.x-hair_center.x)/hair_axes.x**2,(point.y-hair_center.y)/hair_axes.y**2,(point.z-hair_center.z)/hair_axes.z**2)).normalized()
-    return point,normal
+    depth = hair_axes.y if math.cos(alpha) >= 0 else hair_back_depth
+    return hair_center+Vector((hair_axes.x*math.sin(beta)*math.sin(alpha),-depth*math.sin(beta)*math.cos(alpha),hair_axes.z*math.cos(beta)))
 
 
 def hair_vertex(point):
@@ -303,14 +321,16 @@ def hair_vertex(point):
     return len(hair_vertices)-1
 
 
-columns,rows=48,18
+columns,rows=96,32
 for i in range(rows+1):
     for j in range(columns):
         alpha=math.tau*j/columns
         front=max(0,math.cos(alpha));back=max(0,-math.cos(alpha))
-        edge=3.18+.33*front**3-.405*back+.020*math.sin(alpha*7+1.3)
+        wrapped=math.atan2(math.sin(alpha),math.cos(alpha))
+        fringe=.13*math.exp(-((wrapped+.45)/.48)**2)
+        edge=3.18+.27*front**3-.39*back+.012*math.sin(alpha*9+1.3)-fringe
         limit=math.acos(max(-1,min(1,(edge-3.32)/.64)))
-        point,normal=scalp_point(alpha,.004+(limit-.004)*i/rows)
+        point=scalp_point(alpha,.004+(limit-.004)*i/rows)
         hair_vertex(point)
 for i in range(rows):
     for j in range(columns):
@@ -320,63 +340,26 @@ center=hair_vertex((0,.15,3.28))
 for j in range(columns):hair_faces.append((rows*columns+j,rows*columns+(j+1)%columns,center))
 
 
-def hair_lock(alpha0,beta0,alpha1,beta1,width,lift):
-    samples,sides=16,10
-    path=[];normals=[]
-    for i in range(samples):
-        t=i/(samples-1);ease=t*t*(3-2*t)
-        alpha=alpha0+(alpha1-alpha0)*ease
-        beta=beta0+(beta1-beta0)*t
-        point,normal=scalp_point(alpha,beta)
-        offset=-.025*(1-min(1,t/.12))+.012+lift*math.sin(math.pi*t)**.8
-        path.append(point+normal*offset);normals.append(normal)
-    start=len(hair_vertices)
-    previous_wide=None
-    for i,(point,normal) in enumerate(zip(path,normals,strict=True)):
-        t=i/(samples-1)
-        tangent=(path[min(i+1,samples-1)]-path[max(i-1,0)]).normalized()
-        thin=(normal-tangent*normal.dot(tangent)).normalized()
-        wide=tangent.cross(thin).normalized()
-        if previous_wide is not None and wide.dot(previous_wide)<0:wide=-wide;thin=-thin
-        previous_wide=wide
-        taper=(.38+.62*min(1,t/.16))*(1-.96*t**2.4)
-        broad=width*taper;narrow=width*.29*taper
-        for j in range(sides):
-            a=math.tau*j/sides
-            contour=point+wide*math.cos(a)*broad+thin*math.sin(a)*narrow
-            hair_vertex(contour)
-    for i in range(samples-1):
-        for j in range(sides):
-            a=start+i*sides+j;b=start+i*sides+(j+1)%sides;hair_faces.append((a,b,b+sides,a+sides))
-    hair_faces.append(tuple(reversed(range(start,start+sides))))
-    hair_faces.append(tuple(range(start+(samples-1)*sides,start+samples*sides)))
-
-
-locks=[]
-for i in range(18):
-    locks.append((.32+.025*i,.24+.040*i,-.60-.040*i,1.20+.019*i,.041+.008*math.sin(i*1.7),.010+.005*math.sin(i)))
-for i in range(6):
-    locks.append((-.1+.15*i,1.00+.023*i,-.68+.235*i,1.38+.033*math.sin(i*1.7),.037+.006*math.sin(i),.018))
-for i in range(10):
-    locks.append((.30+.14*i,.18+.03*i,1.40+.11*i,.90+.06*i,.046,.015))
-for side,count in [(-1,14),(1,15)]:
-    for i in range(count):
-        locks.append((side*(.87+.070*i),.50+.07*(i%5),side*(1.10+.07*i),1.48+.08*(i%4),.048+.009*math.sin(i),.018))
-for i in range(20):
-    angle=2.10+i*.11
-    locks.append((angle-.17,.73+.11*(i%3),angle,2.11+.10*(i%5),.066,.025))
-for lock in locks:hair_lock(*lock)
 hair_object=projected_mesh('Maksym swept sculpted hair',hair_vertices,hair_faces,subdivision=0)
 for loop in hair_object.data.loops:
     point=hair_object.data.vertices[loop.vertex_index].co
     front=hair_object.data.uv_layers['Front projection'].data[loop.index].uv
-    pixel_y=min((1-front.y)*front_height,460-70*max(0,point.x)/.6)
+    pixel_y=170+(3.96-point.z)*400
     front.y=1-pixel_y/front_height
     uv=hair_object.data.uv_layers['Profile projection'].data[loop.index].uv
     px,py=uv.x*profile_width,(1-uv.y)*profile_height
     if py>540:px=max(px,870)
     uv.x=px/profile_width
     hair_object.data.uv_layers['Back projection'].data[loop.index].uv=((627-point.x*410)/1254,1-(65+(4.01-point.z)*590)/1254)
+crown_uv = hair_object.data.uv_layers.new(name='Crown projection')
+for loop in hair_object.data.loops:
+    point = hair_object.data.vertices[loop.vertex_index].co
+    depth = hair_axes.y if point.y < hair_center.y else hair_back_depth
+    crown_uv.data[loop.index].uv = (.5 + .38 * point.x / hair_axes.x, .5 + .44 * (point.y - hair_center.y) / depth)
+crown_weight = hair_object.data.attributes.new(name='Crown weight', type='FLOAT', domain='POINT')
+for vertex in hair_object.data.vertices:
+    t = min(1, max(0, (vertex.co.z - 3.38) / .34))
+    crown_weight.data[vertex.index].value = t * t * (3 - 2 * t)
 geometry=bmesh.new();geometry.from_mesh(hair_object.data)
 assert all(edge.is_manifold for edge in geometry.edges)
 geometry.free()
@@ -426,12 +409,12 @@ def body_loft(name, sections, mat, sides=18):
 
 
 torso = rings('tailored washed charcoal crewneck', [
-    (.25, .82, .39, .16), (.38, .89, .42, .15), (.77, .94, .44, .14),
-    (1.18, .97, .42, .13), (1.52, .93, .39, .12), (1.73, .78, .35, .11),
-    (1.85, .66, .31, .10), (1.98, .33, .29, .10),
+    (.20, .78, .39, .28), (.34, .86, .44, .28), (.81, .91, .47, .26),
+    (1.32, .95, .45, .24), (1.76, .94, .41, .22), (1.96, .81, .36, .20),
+    (2.08, .66, .32, .19), (2.22, .33, .29, .18),
 ], shirt, count=56, subdivision=1)
 neckline = rings('stitched crewneck neckline', [
-    (1.83, .40, .35, .10), (1.94, .34, .32, .10), (2.01, .305, .32, .10),
+    (2.05, .40, .34, .18), (2.16, .34, .30, .16), (2.23, .305, .335, .10),
 ], shirt, count=48, subdivision=1)
 cloth_parts = [torso, neckline]
 for vertex in torso.data.vertices:
@@ -440,31 +423,34 @@ for vertex in torso.data.vertices:
 collar = []
 for j in range(56):
     angle = math.tau * j / 56
-    collar.append((.31 * math.sin(angle), .10 - .335 * math.cos(angle), 2.005))
+    collar.append((.30 * math.sin(angle), .10 - .335 * math.cos(angle), 2.225))
 curve('ribbed fitted crewneck', collar, .027, seam, True)
 
+typing_hands = []
 for side in (-1, 1):
     sleeve = body_loft('connected short sleeve', [
-        (side * .58, .10, 1.70, .12, .18),
-        (side * .76, .07, 1.49, .22, .24),
-        (side * .81, .03, 1.22, .20, .23),
-        (side * .81, .02, .96, .165, .20),
-        (side * .79, .00, .84, .15, .18),
+        (side * .62, .21, 1.91, .15, .19),
+        (side * .80, .17, 1.70, .24, .25),
+        (side * .85, .12, 1.37, .205, .22),
+        (side * .86, .07, 1.14, .17, .19),
+        (side * .84, .03, 1.03, .175, .195),
     ], shirt, 22)
     cloth_parts.append(sleeve)
-    body_loft('folded charcoal sleeve cuff',[
-        (side*.80,.01,.875,.16,.19),
-        (side*.795,.005,.84,.164,.194),
-        (side*.79,0,.81,.155,.184),
+    cuff = body_loft('folded charcoal sleeve cuff',[
+        (side*.85,.04,1.07,.185,.205),
+        (side*.845,.02,1.035,.185,.205),
+        (side*.84,0,.99,.175,.195),
     ],shirt,24)
+    cloth_parts.append(cuff)
 
     forearm = body_loft('anatomical bare forearm', [
-        (side * .83, .01, .86, .15, .16),
-        (side * .84, .03, .76, .16, .17),
-        (side * .77, -.10, .67, .15, .16),
-        (side * .64, -.33, .57, .14, .14),
-        (side * .55, -.50, .51, .115, .115),
-    ], skin, 20)
+        (side * .84, .025, 1.065, .155, .165),
+        (side * .86, -.045, .91, .16, .17),
+        (side * .83, -.28, .77, .145, .15),
+        (side * .73, -.57, .65, .13, .135),
+        (side * .62, -.87, .56, .115, .12),
+        (side * .55, -.50 - LAPTOP_FORWARD, .51, .11, .105),
+    ], skin, 24)
 
     palm = body_loft('sculpted typing palm', [
         (side * .55, -.49, .51, .12, .11),
@@ -491,12 +477,17 @@ for side in (-1, 1):
         (side*.26,-.555,.426,.029,.028),
     ],skin,16))
 
+    for part in finger_parts[1:]:
+        for vertex in part.data.vertices:
+            vertex.co.y = -.49 + (vertex.co.y + .49) * 1.08 - LAPTOP_FORWARD
+
     bpy.ops.object.select_all(action='DESELECT')
     for part in finger_parts:
         part.select_set(True)
     bpy.context.view_layer.objects.active = palm
     bpy.ops.object.join()
     palm.name = 'voxel-fused anatomical typing hand'
+    palm.location.z += .018
     remesh = palm.modifiers.new('fused palm and fingers', 'REMESH')
     remesh.mode = 'VOXEL'
     remesh.voxel_size = .012
@@ -505,6 +496,7 @@ for side in (-1, 1):
     bpy.ops.object.modifier_apply(modifier=remesh.name)
     smooth = palm.modifiers.new('soft anatomical transitions', 'SMOOTH');smooth.factor=.4;smooth.iterations=3
     bpy.ops.object.modifier_apply(modifier=smooth.name)
+    typing_hands.append(palm)
 
 bpy.ops.object.select_all(action='DESELECT')
 for obj in cloth_parts:
@@ -517,7 +509,7 @@ smooth=torso.modifiers.new('relaxed fabric transitions','SMOOTH');smooth.factor=
 bpy.ops.object.modifier_apply(modifier=smooth.name)
 decimate=torso.modifiers.new('cloth mesh budget','DECIMATE');decimate.ratio=.58
 bpy.ops.object.modifier_apply(modifier=decimate.name)
-watch_center=Vector((.58,-.44,.55));watch_axis=Vector((.15,.9,.32)).normalized()
+watch_center=Vector((.59,-1.02,.558));watch_axis=Vector((.25,.96,.18)).normalized()
 watch_across=(Vector((1,0,0))-watch_axis*watch_axis.x).normalized();watch_up=watch_across.cross(watch_axis).normalized()
 for offset in (-.024,.024):
     points=[]
@@ -531,7 +523,7 @@ watch_glass.rotation_euler=watch_case.rotation_euler
 
 bpy.context.view_layer.update()
 for obj in set(bpy.context.scene.objects) - body_start:
-    obj.data.transform(obj.matrix_world.inverted() @ Matrix.Diagonal((1.18, 1, 1, 1)) @ obj.matrix_world)
+    obj.data.transform(obj.matrix_world.inverted() @ Matrix.Diagonal((1.27, 1, 1, 1)) @ obj.matrix_world)
 
 def rounded_panel(name, center, width, height, thickness, mat, radius=.045, vertical=False):
     outline=[]
@@ -616,6 +608,10 @@ bpy.context.view_layer.update()
 pivot=Vector((0,-1.276,.386));rotation=Matrix.Rotation(.16,4,'X')
 for obj in lid:obj.matrix_world=Matrix.Translation(pivot)@rotation@Matrix.Translation(-pivot)@obj.matrix_world
 
+for obj in bpy.context.scene.objects:
+    if obj.name.startswith('MacBook ') or obj.name == 'mtos_screen':
+        obj.location.y -= LAPTOP_FORWARD
+
 bpy.ops.object.select_all(action='DESELECT')
 for obj in list(bpy.context.scene.objects):
     if obj.type == 'CURVE':
@@ -652,6 +648,16 @@ for material_name, objects in macbook_materials.items():
     bpy.context.view_layer.objects.active = objects[0]
     bpy.ops.object.join()
     bpy.context.object.name = 'MacBook ' + material_name
+
+bpy.context.view_layer.update()
+laptop_meshes = [obj for obj in bpy.context.scene.objects if obj.name.startswith('MacBook ') or obj.name == 'mtos_screen']
+laptop_back = max((obj.matrix_world @ vertex.co).y for obj in laptop_meshes for vertex in obj.data.vertices)
+torso_front = min((torso.matrix_world @ vertex.co).y for vertex in torso.data.vertices)
+assert torso_front > laptop_back, 'Torso intersects the MacBook depth range'
+key_meshes = [bpy.data.objects[name] for name in ('MacBook keyboard', 'MacBook key legends')]
+key_top = max((obj.matrix_world @ vertex.co).z for obj in key_meshes for vertex in obj.data.vertices)
+for hand in typing_hands:
+    assert min((hand.matrix_world @ vertex.co).z for vertex in hand.data.vertices) > key_top, 'Typing hand intersects the keyboard'
 
 scene=bpy.context.scene
 world=bpy.data.worlds.new('soft studio')
