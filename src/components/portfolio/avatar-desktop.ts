@@ -4,11 +4,14 @@ import { avatarAssets } from '@/data/avatar';
 
 export function addDesktopScreen(model: THREE.Object3D) {
   const screen = model.getObjectByName('mtos_screen');
-  if (!(screen instanceof THREE.Mesh)) return;
+  if (!(screen instanceof THREE.Mesh) || !(screen.geometry instanceof THREE.BufferGeometry)) return;
+  screen.geometry.computeBoundingBox();
+  const dimensions = screen.geometry.boundingBox?.getSize(new THREE.Vector3());
+  if (!dimensions) return;
   const texture = new THREE.TextureLoader().load(avatarAssets.wallpaper);
   texture.colorSpace = THREE.SRGBColorSpace;
   const display = new THREE.Mesh(
-    new THREE.PlaneGeometry(2.048, 1.568),
+    new THREE.PlaneGeometry(dimensions.x, dimensions.y),
     new THREE.MeshBasicMaterial({ map: texture, toneMapped: false })
   );
   display.name = 'mtos_wallpaper';
