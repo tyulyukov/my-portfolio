@@ -6,9 +6,11 @@ from pathlib import Path
 import bpy
 import bmesh
 from mathutils import Matrix, Vector
-from mathutils.bvhtree import BVHTree
 
-ASSETS = Path(__file__).resolve().parents[1] / 'public'
+ROOT = Path(__file__).resolve().parents[1]
+ASSETS = ROOT / 'public'
+if bpy.app.version != (5, 2, 1):
+    raise RuntimeError(f'Avatar rebuild requires Blender 5.2.1; found {bpy.app.version_string}')
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 
@@ -25,15 +27,10 @@ def material(name, color, metallic=0, roughness=.45):
 
 
 skin = material('warm natural skin', (.50, .30, .22), roughness=.52)
-brow = material('natural brown eyebrows', (.095, .062, .037), roughness=.8)
 shirt = material('washed charcoal cotton', (.032, .038, .042), roughness=.93)
 seam = material('charcoal ribbed collar', (.023, .028, .032), roughness=.93)
 silver = material('satin aluminum', (.48, .50, .53), metallic=.75, roughness=.3)
 frame = material('dark fine wire glasses', (.027, .023, .023), metallic=.7, roughness=.3)
-white = material('eye glint', (.96, .96, .92), roughness=.2)
-eye_white = material('warm ivory sclera', (.66, .65, .59), roughness=.37)
-iris = material('muted hazel gray iris', (.095, .12, .10), roughness=.3)
-pupil = material('pupil', (.006, .009, .009), roughness=.2)
 black = material('keyboard graphite', (.012, .015, .019), roughness=.5)
 display = material('display glass', (.009, .018, .026), metallic=.12, roughness=.23)
 logo = material('polished dark Apple inlay', (.017, .020, .024), metallic=.6, roughness=.2)
@@ -118,96 +115,226 @@ def rings(name, levels, mat, count=64, subdivision=1):
     return mesh(name, vertices, faces, mat, subdivision)
 
 
-head_data = json.loads((ASSETS.parent/'scripts/reference/adult-head.json').read_text())
+REFERENCE = ROOT / 'scripts' / 'reference' / 'likeness'
+face_data = json.loads((REFERENCE / 'face.json').read_text())
+projection = face_data['projection']
+ppunit = projection['pixels_per_unit']
+eye_x, eye_y = projection['eye_center']
+eye_height = projection['eye_height']
+front_width, front_height = projection['image_size']
+profile_projection = face_data['profile_trace']
+profile_width, profile_height = profile_projection['image_size']
 
+def front_uv(point):
+    return ((eye_x + point[0] * ppunit) / front_width,
+        1 - (eye_y + (eye_height - point[2]) * ppunit) / front_height)
 
-def head_point(point):
-    x, height, depth = point
-    neck = min(1, max(0, (7.20-height)/.60))
-    point = Vector((x*.85*(1-.20*neck), -(depth-.50)*.72*(1-.28*neck), 2.40+(height-7.02)*.82))
-    if height < 6.95:
-        radius = math.hypot(point.x/.34, (point.y-.10)/.33)
-        blend = min(1, (6.95-height)/.26)
-        factor = 1-blend+blend/min(10, max(1, radius))
-        point.x *= factor
-        point.y = .10+(point.y-.10)*factor
-    return point
+def profile_uv(point):
+    scale = profile_projection['pixels_per_unit']
+    return ((profile_projection['nose_x'] + (point[1] - profile_projection['nose_depth']) * scale) / profile_width,
+        1 - (profile_projection['eye_y'] + (eye_height - point[2]) * scale) / profile_height)
 
+def projected_mesh(name, points, faces, front_coordinates=None, subdivision=1):
+    obj = mesh(name, points, faces, skin, subdivision)
+    front_layer = obj.data.uv_layers.new(name='Front projection')
+    profile_layer = obj.data.uv_layers.new(name='Profile projection')
+    back_layer = obj.data.uv_layers.new(name='Back projection')
+    for poly in obj.data.polygons:
+        for loop_index in poly.loop_indices:
+            index = obj.data.loops[loop_index].vertex_index
+            front_layer.data[loop_index].uv = front_coordinates[index] if front_coordinates else front_uv(points[index])
+            profile_layer.data[loop_index].uv = profile_uv(points[index])
+            point = points[index]
+            back_layer.data[loop_index].uv = ((627 - point[0] * 430) / 1254, 1 - (45 + (4.01 - point[2]) * 625) / 1254)
+    weights = obj.data.attributes.new(name='Profile weight', type='FLOAT', domain='POINT')
+    for item, point in zip(weights.data, points, strict=True):
+        t = min(1, max(0, (point[1] + 0.52) / 0.52))
+        item.value = t * t * (3 - 2 * t)
+    back_weights = obj.data.attributes.new(name='Back weight', type='FLOAT', domain='POINT')
+    for item, point in zip(back_weights.data, points, strict=True):
+        t = min(1, max(0, (point[1] - 0.42) / 0.22))
+        item.value = t * t * (3 - 2 * t)
+    return obj
+points = [tuple(v) for v in face_data['vertices']]
+faces = [tuple(f) for f in face_data['faces']]
+front_coordinates = list(face_data['uv'])
+boundary = face_data['boundaries'][0]
+previous = boundary
+for ring in range(1, 13):
+    t = ring / 13
+    ring_indices = []
+    for index in boundary:
+        x, y, z = face_data['vertices'][index]
+        width = math.cos(t * math.pi / 2)
+        vertex = (x * width, y * width + 0.77 * math.sin(t * math.pi / 2), 3.05 + (z - 3.05) * width + max(0, z - 3.05) * 0.65 * math.sin(math.pi * t))
+        ring_indices.append(len(points))
+        points.append(vertex)
+        front_coordinates.append(front_uv(vertex))
+    for j in range(len(boundary)):
+        k = (j + 1) % len(boundary)
+        faces.append((previous[j], previous[k], ring_indices[k], ring_indices[j]))
+    previous = ring_indices
+points.append((0, 0.77, 3.05))
+front_coordinates.append(front_uv(points[-1]))
+center = len(points) - 1
+for j in range(len(boundary)):
+    faces.append((previous[j], previous[(j + 1) % len(boundary)], center))
+head = projected_mesh('Maksym photo-fitted facial anatomy', points, faces, front_coordinates, 2)
+head_parts = [head]
+points, faces = ([], [])
+for i in range(8):
+    z = 1.97 + i * 0.19
+    for j in range(48):
+        t = math.tau * j / 48
+        points.append((0.295 * math.sin(t), 0.1 - 0.32 * math.cos(t), z))
+for i in range(7):
+    for j in range(48):
+        a = i * 48 + j
+        b = i * 48 + (j + 1) % 48
+        faces.append((a, b, b + 48, a + 48))
+neck = projected_mesh('portrait neck', points, faces, subdivision=1)
+for loop in neck.data.loops:
+    point = neck.data.vertices[loop.vertex_index].co
+    neck.data.uv_layers['Back projection'].data[loop.index].uv = ((627 - point.x * 550) / 1254, 1 - (950 + (2.9 - point.z) * 180) / 1254)
+for vertex in neck.data.vertices:
+    front_mix = min(1, max(0, (vertex.co.y + 0.18) / 0.30))
+    back_mix = min(1, max(0, (vertex.co.y - 0.10) / 0.25))
+    neck.data.attributes['Profile weight'].data[vertex.index].value = front_mix * front_mix * (3 - 2 * front_mix)
+    neck.data.attributes['Back weight'].data[vertex.index].value = back_mix * back_mix * (3 - 2 * back_mix)
+head_parts.append(neck)
 
-vertices = [head_point(point) for point in head_data['vertices']]
-for point in vertices:
-    nose = math.exp(-(point.x/.15)**4-((point.z-2.98)/.23)**4)*max(0,min(1,(-point.y-.65)/.20))
-    point.y -= .07*nose
-    smile = math.exp(-((abs(point.x)-.205)/.095)**2-((point.z-2.665)/.12)**4)*max(0,min(1,(-point.y-.60)/.20))
-    point.z += .048*smile
-    eyelid = math.exp(-((abs(point.x)-.25)/.15)**4-((point.z-3.285)/.048)**2)*max(0,min(1,(-point.y-.58)/.15))
-    point.z += .025*eyelid
-head = mesh('Maksym adult facial anatomy', vertices, head_data['faces'], skin, subdivision=1)
-lip_mask = head.data.attributes.new(name='Lip warmth', type='FLOAT', domain='POINT')
-for value, weight in zip(lip_mask.data, head_data['lip_weights'], strict=True):
-    value.value = weight
-bpy.context.view_layer.objects.active=head
-bpy.ops.object.modifier_apply(modifier=head.modifiers[0].name)
-face_tree=BVHTree.FromPolygons([v.co for v in head.data.vertices], [p.vertices for p in head.data.polygons])
-
-
-def face_surface(x, z, offset=.006):
-    point, normal, index, distance=face_tree.ray_cast((x,-3,z),(0,1,0),6)
-    if point is None:
-        raise ValueError(f'Face projection missed at {x}, {z}')
-    return Vector((x,point.y-offset,z))
-
-
-face_mat=material('adult skin and subtle facial tones',(1,1,1),roughness=.58)
-head.data.materials[0]=face_mat
-colors=head.data.color_attributes.new(name='Complexion',type='FLOAT_COLOR',domain='POINT')
-for vertex,color,lip_weight in zip(head.data.vertices,colors.data,head.data.attributes['Lip warmth'].data):
-    x,y,z=vertex.co
-    front=max(0,min(1,(-y-.30)*4))
-    cheek=math.exp(-((abs(x)-.41)/.18)**2-((z-2.94)/.22)**2)*front
-    beard=math.exp(-((z-2.45)/.23)**2)*front
-    mouth=min(1,lip_weight.value*2)*front
-    color.color=(.50-.036*beard+.018*cheek,.30-.024*beard-.018*cheek-.065*mouth,.22-.012*beard-.006*cheek-.034*mouth,1)
-node=face_mat.node_tree.nodes.new('ShaderNodeVertexColor')
-node.layer_name='Complexion'
-face_mat.node_tree.links.new(node.outputs['Color'],face_mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
-
-for name,point in head_data['eyes'].items():
-    center=head_point(point)
-    sphere('natural eye sclera',center,(.128,.117,.124),eye_white,40,24)
-    sphere('hazel gray iris',center+Vector((0,-.115,0)),(.054,.009,.056),iris,32,20)
-    sphere('natural pupil',center+Vector((0,-.125,0)),(.026,.005,.029),pupil,24,16)
-    sphere('subtle eye glint',center+Vector((-.015,-.130,.023)),(.009,.004,.010),white,16,10)
-    x=center.x
-    points=[]
-    for j in range(9):
-        u=-1+2*j/8
-        z=center.z+.172+.035*(1-u*u)-.022*u*(1 if x>0 else -1)
-        points.append((*face_surface(x+.18*u,z,.010),.18+.82*math.sin(math.pi*j/8)))
-    curve('natural adult eyebrow',points,.027,brow)
-    points=[]
-    for j in range(32):
-        t=math.tau*j/32
-        points.append((x+.232*math.cos(t),-.845+.034*abs(math.cos(t)),center.z-.045+.230*math.sin(t)))
-    curve('round wire glasses',points,.0085,frame,True)
-curve('wire glasses bridge',[(-.022,-.847,3.25),(0,-.870,3.265),(.022,-.847,3.25)],.0085,frame)
-for side in (-1,1):
-    curve('glasses temple',[(side*.505,-.825,3.28),(side*.70,-.49,3.30),
-        (side*.746,.02,3.23),(side*.70,.13,3.09)],.009,frame)
+def bake_portrait(objects, name, resolution, tint, roughness):
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj in objects:
+        bpy.context.view_layer.objects.active = obj
+        for modifier in list(obj.modifiers):
+            bpy.ops.object.modifier_apply(modifier=modifier.name)
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = objects[0]
+    if len(objects) > 1:
+        bpy.ops.object.join()
+    obj = objects[0]
+    geometry = bmesh.new()
+    geometry.from_mesh(obj.data)
+    bmesh.ops.recalc_face_normals(geometry, faces=geometry.faces)
+    geometry.to_mesh(obj.data)
+    geometry.free()
+    mat = material(name, (1, 1, 1), roughness=roughness)
+    obj.data.materials.clear()
+    obj.data.materials.append(mat)
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    output = nodes.get('Material Output')
+    shader = nodes.get('Principled BSDF')
+    front = nodes.new('ShaderNodeTexImage')
+    front.image = bpy.data.images.load(str(REFERENCE / 'front.png'), check_existing=True)
+    profile = nodes.new('ShaderNodeTexImage')
+    profile.image = bpy.data.images.load(str(REFERENCE / 'profile.png'), check_existing=True)
+    back = nodes.new('ShaderNodeTexImage')
+    back.image = bpy.data.images.load(str(REFERENCE / 'back.png'), check_existing=True)
+    for node, layer in [(front, 'Front projection'), (profile, 'Profile projection'), (back, 'Back projection')]:
+        node.extension = 'EXTEND'
+        uv = nodes.new('ShaderNodeUVMap')
+        uv.uv_map = layer
+        links.new(uv.outputs['UV'], node.inputs['Vector'])
+    weight = nodes.new('ShaderNodeAttribute')
+    weight.attribute_name = 'Profile weight'
+    mix = nodes.new('ShaderNodeMixRGB')
+    mix.blend_type = 'MIX'
+    links.new(weight.outputs['Fac'], mix.inputs[0])
+    links.new(front.outputs['Color'], mix.inputs[1])
+    links.new(profile.outputs['Color'], mix.inputs[2])
+    rear_weight = nodes.new('ShaderNodeAttribute')
+    rear_weight.attribute_name = 'Back weight'
+    rear_mix = nodes.new('ShaderNodeMixRGB')
+    rear_mix.blend_type = 'MIX'
+    links.new(rear_weight.outputs['Fac'], rear_mix.inputs[0])
+    links.new(mix.outputs[0], rear_mix.inputs[1])
+    links.new(back.outputs['Color'], rear_mix.inputs[2])
+    emission = nodes.new('ShaderNodeEmission')
+    links.new(rear_mix.outputs[0], emission.inputs['Color'])
+    links.new(emission.outputs[0], output.inputs['Surface'])
+    atlas = obj.data.uv_layers.new(name='Portrait atlas')
+    obj.data.uv_layers.active = atlas
+    atlas.active_render = True
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.015)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    baked = bpy.data.images.new(name + ' atlas', width=resolution, height=resolution, alpha=False)
+    target = nodes.new('ShaderNodeTexImage')
+    target.image = baked
+    nodes.active = target
+    scene = bpy.context.scene
+    scene.render.engine = 'CYCLES'
+    scene.cycles.device = 'CPU'
+    scene.cycles.samples = 1
+    bpy.ops.object.bake(type='EMIT', margin=12)
+    baked.pack()
+    for node in list(nodes):
+        if node not in (output, shader, target):
+            nodes.remove(node)
+    color = nodes.new('ShaderNodeMix')
+    color.data_type = 'RGBA'
+    color.blend_type = 'MULTIPLY'
+    color.inputs[0].default_value = 1
+    color.inputs[7].default_value = (*tint, 1)
+    links.new(target.outputs['Color'], color.inputs[6])
+    links.new(color.outputs[2], shader.inputs['Base Color'])
+    links.new(shader.outputs[0], output.inputs['Surface'])
+    for layer in list(obj.data.uv_layers):
+        if layer.name != 'Portrait atlas':
+            obj.data.uv_layers.remove(layer)
+    return obj
+head = bake_portrait(head_parts, 'portrait skin', 2048, (0.68, 0.68, 0.68), 0.88)
+points, faces = ([], [])
+rows, columns = (40, 96)
+for i in range(rows + 1):
+    for j in range(columns):
+        theta = math.tau * j / columns
+        front = max(0, math.cos(theta))
+        back = max(0, -math.cos(theta))
+        minimum = 3.27 + 0.16 * front ** 4 - 0.67 * back + 0.12 * math.sin(theta) * front
+        maximum = math.acos(max(-1, min(1, (minimum - 3.29) / 0.72)))
+        phi = 0.003 + (maximum - 0.003) * i / rows
+        points.append((0.69 * math.sin(phi) * math.sin(theta), 0.06 - 0.87 * math.sin(phi) * math.cos(theta) + 0.09 * front * math.exp(-((i / rows - 1) / 0.18) ** 2), 3.29 + 0.72 * math.cos(phi)))
+for i in range(rows):
+    for j in range(columns):
+        a = i * columns + j
+        b = i * columns + (j + 1) % columns
+        faces.append((a, b, b + columns, a + columns))
+hair_object = projected_mesh('Maksym portrait hairstyle', points, faces, subdivision=1)
+for loop in hair_object.data.loops:
+    point = hair_object.data.vertices[loop.vertex_index].co
+    uv = hair_object.data.uv_layers['Profile projection'].data[loop.index].uv
+    px, py = (uv.x * profile_width, (1 - uv.y) * profile_height)
+    if py > 540:
+        px = max(px, 850)
+    hair_object.data.uv_layers['Profile projection'].data[loop.index].uv = (px / profile_width, 1 - py / profile_height)
+    hair_object.data.uv_layers['Back projection'].data[loop.index].uv = ((627 - point.x * 410) / 1254, 1 - (65 + (4.01 - point.z) * 590) / 1254)
+hair_object = bake_portrait([hair_object], 'portrait hair', 1024, (0.67, 0.67, 0.67), 0.75)
+for side in (-1, 1):
+    points = []
+    for j in range(40):
+        t = math.tau * j / 40
+        points.append((side * 0.23 + 0.214 * math.cos(t), -0.88 + 0.16 * (abs(side * 0.23 + 0.214 * math.cos(t)) / 0.46) ** 2, 3.165 + 0.207 * math.sin(t)))
+    curve('round fine wire glasses', points, 0.006, frame, True)
+    curve('glasses temple', [(side * 0.448, -0.728, 3.2), (side * 0.57, -0.34, 3.19), (side * 0.61, 0.19, 3.12), (side * 0.575, 0.31, 3.03)], 0.006, frame)
+curve('glasses bridge', [(-0.017, -0.91, 3.21), (0, -0.94, 3.235), (0.017, -0.91, 3.21)], 0.006, frame)
 
 body_start = set(bpy.context.scene.objects)
 torso = rings('relaxed charcoal T shirt', [
     (.24, .90, .41, .20), (.29, 1.04, .46, .18),
     (.65, 1.07, .48, .18), (1.12, 1.09, .46, .17),
     (1.54, 1.08, .40, .16), (1.79, .92, .34, .15),
-    (1.95, .57, .38, .08), (2.00, .40, .38, .08),
+    (1.95, .57, .38, .08), (2.00, .285, .30, .10),
 ], shirt)
 for vertex in torso.data.vertices:
     vertex.co.z = .24+(vertex.co.z-.24)*1.05
 collar = []
 for j in range(48):
     t = math.tau*j/48
-    collar.append((.40*math.sin(t), .07-.43*math.cos(t), 2.065-.052*math.cos(t)))
+    collar.append((.285*math.sin(t), .10-.33*math.cos(t), 2.065-.052*math.cos(t)))
 curve('ribbed crewneck', collar, .04, seam, True)
 for side in (-1, 1):
     sleeve = rings('short loose sleeve', [
@@ -239,37 +366,6 @@ for obj in set(bpy.context.scene.objects)-body_start:
     obj.data.transform(obj.matrix_world.inverted() @ Matrix.Diagonal((1.18,1,1,1)) @ obj.matrix_world)
 
 
-hair_data = json.loads((ASSETS.parent/'scripts/reference/swept-hair.json').read_text())
-hair_material = material('ash blond fine hair', (1, 1, 1), roughness=.72)
-hair_material.surface_render_method = 'DITHERED'
-hair_material.use_backface_culling = False
-texture = hair_material.node_tree.nodes.new('ShaderNodeTexImage')
-texture.image = bpy.data.images.load(str(ASSETS.parent/'scripts/reference/swept-hair.png'))
-texture.image.scale(1024, 1024)
-shader = hair_material.node_tree.nodes['Principled BSDF']
-tint = hair_material.node_tree.nodes.new('ShaderNodeMix')
-tint.data_type = 'RGBA'
-tint.blend_type = 'MULTIPLY'
-tint.inputs[0].default_value = 1
-tint.inputs[7].default_value = (.48, .43, .35, 1)
-hair_material.node_tree.links.new(texture.outputs['Color'], tint.inputs[6])
-hair_material.node_tree.links.new(tint.outputs[2], shader.inputs['Base Color'])
-alpha_texture = hair_material.node_tree.nodes.new('ShaderNodeTexImage')
-alpha_texture.image = bpy.data.images.load(str(ASSETS.parent/'scripts/reference/hair-alpha.png'))
-alpha_texture.image.scale(1024, 1024)
-hair_material.node_tree.links.new(alpha_texture.outputs['Alpha'], shader.inputs['Alpha'])
-hair_vertices = [head_point(v) for v in hair_data['vertices']]
-for point in hair_vertices:
-    front = min(1, max(0, (-point.y-.30)/.30))
-    point.z += .27*front*math.exp(-((point.z-3.35)/.45)**2)
-    if point.z < 3.05:
-        point.z = 3.05+(point.z-3.05)*.40
-hair_object = mesh('Maksym swept layered hairstyle', hair_vertices,
-    hair_data['faces'], hair_material)
-uv_layer = hair_object.data.uv_layers.new(name='Hair UV')
-for polygon, uv_face in zip(hair_object.data.polygons, hair_data['uv_faces'], strict=True):
-    for loop_index, uv_index in zip(polygon.loop_indices, uv_face, strict=True):
-        uv_layer.data[loop_index].uv = hair_data['uvs'][uv_index]
 
 box('MacBook unibody base', (0,-.77,.34), (1.10,.66,.047), silver, .04)
 box('keyboard inset', (0,-.70,.39), (.94,.31,.008), black, .025)
@@ -360,7 +456,7 @@ for obj in list(bpy.context.scene.objects):
     bmesh.ops.recalc_face_normals(geometry, faces=geometry.faces)
     geometry.to_mesh(obj.data)
     geometry.free()
-    if obj != hair_object:
+    if obj not in (head, hair_object):
         for uv_layer in list(obj.data.uv_layers):
             obj.data.uv_layers.remove(uv_layer)
 
@@ -403,14 +499,21 @@ scene.view_settings.look='AgX - Medium High Contrast'
 bpy.ops.render.render(write_still=True)
 bpy.ops.export_scene.gltf(filepath=str(ASSETS/'avatar.glb'),export_format='GLB',
     export_apply=True,export_materials='EXPORT',export_normals=True,export_texcoords=True,
+    export_image_format='JPEG',export_jpeg_quality=92,
     export_cameras=False,export_lights=False,export_animations=False,export_yup=True)
 
-model_bytes = (ASSETS/'avatar.glb').read_bytes()
-json_size = struct.unpack_from('<I', model_bytes, 12)[0]
-exported = json.loads(model_bytes[20:20+json_size])
-exported_hair = next(mat for mat in exported['materials'] if mat['name'] == hair_material.name)
-assert exported_hair['alphaMode'] in ('MASK', 'BLEND')
-assert exported_hair['doubleSided']
-factor = exported_hair['pbrMetallicRoughness']['baseColorFactor']
-assert all(abs(a-b) < .00001 for a,b in zip(factor, (.48,.43,.35,1), strict=True))
-assert len(exported['images']) == 1 and 'bufferView' in exported['images'][0]
+model = (ASSETS / 'avatar.glb').read_bytes()
+json_size = struct.unpack_from('<I', model, 12)[0]
+gltf = json.loads(model[20:20 + json_size])
+screens = [node for node in gltf['nodes'] if node.get('name') == 'mtos_screen']
+assert len(screens) == 1
+assert gltf['meshes'][screens[0]['mesh']]['primitives']
+assert len(gltf['images']) == 2
+assert all('uri' not in image for image in gltf['images'])
+for name in ('portrait skin', 'portrait hair'):
+    exported = next(mat for mat in gltf['materials'] if mat['name'] == name)
+    assert 'baseColorTexture' in exported['pbrMetallicRoughness']
+    assert exported.get('alphaMode', 'OPAQUE') == 'OPAQUE'
+for obj in (head, hair_object):
+    assert len(obj.data.uv_layers) == 1
+    assert all(math.isfinite(value) for vertex in obj.data.vertices for value in vertex.co)

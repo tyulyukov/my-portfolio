@@ -22,6 +22,6 @@ This rebuilds `public/avatar.glb` and `public/avatar-3d.webp` from `scripts/buil
 
 When replacing the model, update the version keys in `src/data/avatar.ts`. Both portrait fallbacks use that file.
 
-The avatar is styled using the owner's portrait references in the Apple laptop emoji's typing pose. It has a slim face, round wire glasses, a swept ash-blond fringe, a charcoal T-shirt, and a silver MacBook. The website renders Blender geometry. The [character reference](scripts/reference/avatar-concept.png) is concept art only; original photos are not published.
+The avatar is fitted to the owner's front, profile, and back portrait references in the Apple laptop emoji's typing pose. It has a slim face, round wire glasses, a swept ash-blond fringe, a charcoal T-shirt, and a silver MacBook. The website renders geometry baked and exported by Blender; original photos are not published.
 
-The adult head and fitted hair derive from CC0 MakeHuman assets. See [avatar source assets](scripts/reference/AVATAR-SOURCES.md) for provenance and the baked mesh inputs.
+See [avatar source assets](scripts/reference/AVATAR-SOURCES.md) for likeness data, texture provenance, and the baked mesh inputs.
