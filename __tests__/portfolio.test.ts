@@ -7,7 +7,6 @@ type Page = import('@playwright/test').Page;
 
 async function openDesktop(page: Page) {
   await page.goto(site);
-  await expect(page.getByRole('button', { name: /Pause|Play avatar rotation/ })).toBeVisible();
   await page.getByRole('button', { name: 'psst. open my desktop' }).click();
   await expect(page.getByRole('dialog', { name: 'mTOS desktop' })).toBeVisible({ timeout: 5_000 });
 }
@@ -32,16 +31,8 @@ test('CV stays labelled and mobile page and desktop fit', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test('desktop entry can cancel, restore the canvas, then complete into the native OS dialog', async ({
-  page
-}) => {
+test('desktop button opens the native OS dialog', async ({ page }) => {
   await page.goto(site);
-  await expect(page.getByRole('button', { name: 'Pause avatar rotation' })).toBeVisible();
-  await page.getByRole('button', { name: 'psst. open my desktop' }).click();
-  await expect(page.getByRole('dialog', { name: 'Opening mTOS' })).toBeVisible();
-  await page.getByRole('button', { name: 'Cancel' }).click();
-  await expect(page.getByRole('dialog', { name: 'Opening mTOS' })).toHaveCount(0);
-  await expect(page.getByRole('img', { name: /3D portrait/ }).locator('canvas')).toBeVisible();
   await page.getByRole('button', { name: 'psst. open my desktop' }).click();
   await expect(page.getByRole('dialog', { name: 'mTOS desktop' })).toBeVisible({ timeout: 5_000 });
   await expect(page.getByRole('region', { name: 'Terminal', exact: true })).toBeVisible();
@@ -159,16 +150,12 @@ test('Plinko accepts overlapping drops, reserves each bet, and waits for every b
   await expect(balance).toHaveText(String(beforeNextDrop - 10));
 });
 
-test('the laptop itself opens the desktop', async ({ page }) => {
+test('portrait is static and does not open the desktop', async ({ page }) => {
   await page.goto(site);
-  await page.getByRole('button', { name: 'Pause avatar rotation' }).click();
-  const portrait = page.getByRole('img', { name: /3D portrait/ });
-  const box = await portrait.boundingBox();
-  if (!box) throw new Error('Portrait has no size');
-  await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.69);
-  await expect(page.getByRole('dialog', { name: 'Opening mTOS' })).toBeVisible();
-  await page.getByRole('button', { name: 'Skip to desktop' }).click();
-  await expect(page.getByRole('dialog', { name: 'mTOS desktop' })).toBeVisible();
+  const portrait = page.getByRole('img', { name: 'Maksym with his laptop' });
+  await expect(portrait).toHaveAttribute('src', '/portrait.webp');
+  await portrait.click();
+  await expect(page.getByRole('dialog', { name: 'mTOS desktop' })).toHaveCount(0);
 });
 
 test('Apps menu supports keyboard close and focus restoration', async ({ page }) => {
@@ -194,9 +181,7 @@ test('cancelling a delayed desktop handoff cannot open mTOS later', async ({ pag
     await route.continue();
   });
   await page.goto(site);
-  await page.getByRole('button', { name: 'Pause avatar rotation' }).click();
   await page.getByRole('button', { name: 'psst. open my desktop' }).click();
-  await page.getByRole('button', { name: 'Skip to desktop' }).click();
   const loading = page.getByRole('dialog', { name: 'Loading mTOS' });
   await expect(loading).toBeVisible();
   await loading.getByRole('button', { name: 'Cancel' }).click();
@@ -299,10 +284,9 @@ test('exiting mTOS restores page focus and body scrolling', async ({ page }) => 
   expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
 });
 
-test('reduced motion gives a static explosion and no automatic avatar spin', async ({ page }) => {
+test('reduced motion gives a static explosion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await openCasino(page);
-  await expect(page.getByRole('button', { name: 'Play avatar rotation' })).toBeAttached();
   const casino = page.getByRole('region', { name: 'Lucky Arcade' });
   await casino.getByRole('button', { name: 'Drop ball' }).click();
   await expect(casino.getByRole('button', { name: 'Cash out' })).toBeEnabled({ timeout: 8_000 });
@@ -314,45 +298,50 @@ test('reduced motion gives a static explosion and no automatic avatar spin', asy
   await expect(page.getByRole('dialog', { name: 'mTOS desktop' })).toBeVisible();
 });
 
-test('avatar renders, pauses and responds to mouse and keyboard', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
+test('hero uses the static portrait without 3D controls or canvas', async ({ page }) => {
   await page.goto(site);
-  await page.getByRole('button', { name: 'Pause avatar rotation' }).click();
-  await expect(page.getByRole('button', { name: 'Play avatar rotation' })).toBeVisible();
-  const portrait = page.getByRole('img', { name: /3D portrait/ });
-  const before = await portrait.screenshot();
-  await page.getByRole('button', { name: 'Rotate avatar right' }).click();
-  await page.waitForTimeout(100);
-  expect((await portrait.screenshot()).equals(before)).toBe(false);
-  await page.getByRole('button', { name: 'Rotate avatar left' }).press('Enter');
-  const box = await portrait.boundingBox();
-  if (!box) throw new Error('Portrait has no size');
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2, { steps: 8 });
-  await page.mouse.up();
-  expect(errors).toEqual([]);
+  const portrait = page.getByRole('img', { name: 'Maksym with his laptop' });
+  await expect(portrait).toBeVisible();
+  await expect(portrait.locator('canvas')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /avatar rotation|Rotate avatar/ })).toHaveCount(0);
 });
 
-test('failed 3D asset leaves a usable portfolio and poster', async ({ page }) => {
-  await page.route('**/avatar.glb*', (route) => route.abort());
+test('failed portrait collapses the hero while keeping its text and desktop button', async ({
+  page
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.route('**/portrait.webp', (route) => route.abort());
   await page.goto(site);
-  await expect(
-    page.getByText('3D view could not load. Here is the portrait instead.')
-  ).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(page.getByRole('link', { name: /CV/ })).toBeVisible();
-  await expect(
-    page.getByRole('img', { name: 'Maksym with his laptop', exact: true })
-  ).toBeVisible();
-  await expect(page.getByRole('img', { name: /3D portrait/ })).toHaveCount(0);
-  await expect(page.getByRole('status')).toContainText('3D view could not load.');
+  await expect(page.getByRole('button', { name: 'psst. open my desktop' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Maksym with his laptop' })).toHaveCount(0);
+  await expect
+    .poll(() =>
+      page
+        .locator('#about > div')
+        .evaluate(
+          (element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length
+        )
+    )
+    .toBe(1);
 });
 
-test('phone-density canvas fits and leaves vertical touch scrolling available', async ({
-  browser
-}) => {
+test('decorative skill images are silent and hide when their files fail', async ({ page }) => {
+  await page.route('**/illustrations/*.webp', (route) => route.abort());
+  await page.goto(site);
+  const skills = page.locator('#skills');
+  await skills.scrollIntoViewIfNeeded();
+  await expect(skills.getByRole('heading', { name: 'How I work.' })).toBeVisible();
+  await expect(skills.getByRole('heading', { name: 'AI is part of the job.' })).toBeVisible();
+  for (const image of ['ai-processor', 'code-terminal', 'server-stack']) {
+    const decorativeImage = skills.locator(`img[src="/illustrations/${image}.webp"]`);
+    await expect(decorativeImage).toHaveAttribute('alt', '');
+    await expect(decorativeImage).toBeHidden();
+  }
+});
+
+test('phone-density portrait fits without horizontal overflow', async ({ browser }) => {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 3,
@@ -360,14 +349,10 @@ test('phone-density canvas fits and leaves vertical touch scrolling available', 
   });
   const page = await context.newPage();
   await page.goto(site);
-  await expect(page.getByRole('button', { name: 'Pause avatar rotation' })).toBeVisible();
-  const portrait = page.getByRole('img', { name: /3D portrait/ });
-  const canvas = portrait.locator('canvas');
+  const portrait = page.getByRole('img', { name: 'Maksym with his laptop' });
+  await expect(portrait).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  expect(await canvas.evaluate((element) => getComputedStyle(element).touchAction)).toBe('pan-y');
-  const canvasBox = await canvas.boundingBox();
   const portraitBox = await portrait.boundingBox();
-  expect(canvasBox!.width).toBeLessThanOrEqual(portraitBox!.width);
-  expect(canvasBox!.height).toBeLessThanOrEqual(portraitBox!.height);
+  expect(portraitBox!.width).toBeLessThanOrEqual(390);
   await context.close();
 });

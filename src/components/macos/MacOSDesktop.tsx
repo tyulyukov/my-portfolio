@@ -132,10 +132,8 @@ function AppWindow({
   );
 }
 
-function Shell({ onClose, onReady }: { onClose: () => void; onReady: () => void }) {
+function Shell({ onClose }: { onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  const onReadyReference = useRef(onReady);
-  onReadyReference.current = onReady;
   const appsButtonReference = useRef<HTMLButtonElement>(null);
   const menuReference = useRef<HTMLDivElement>(null);
   const shellReference = useRef<HTMLDivElement>(null);
@@ -154,7 +152,6 @@ function Shell({ onClose, onReady }: { onClose: () => void; onReady: () => void 
   useEffect(() => {
     const node = dialog.current;
     node?.showModal();
-    onReadyReference.current();
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const update = () =>
@@ -261,16 +258,10 @@ function Shell({ onClose, onReady }: { onClose: () => void; onReady: () => void 
   );
 }
 
-export default function MacOSDesktop({
-  onClose,
-  onReady
-}: {
-  onClose: () => void;
-  onReady: () => void;
-}) {
+export default function MacOSDesktop({ onClose }: { onClose: () => void }) {
   return (
     <MacOSProvider>
-      <Shell onClose={onClose} onReady={onReady} />
+      <Shell onClose={onClose} />
     </MacOSProvider>
   );
 }

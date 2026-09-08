@@ -1,6 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-
-import type { AvatarHandle } from './avatar-3d';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ArrowDown, Terminal } from 'lucide-react';
@@ -9,7 +7,6 @@ import { createPortal } from 'react-dom';
 import { avatarAssets } from '@/data/avatar';
 import { profile } from '@/data/profile';
 
-const Avatar3D = lazy(() => import('./avatar-3d'));
 const MacOSDesktop = lazy(() => import('@/components/macos/MacOSDesktop'));
 
 function DesktopLoading({ onClose }: { onClose: () => void }) {
@@ -47,17 +44,15 @@ function DesktopLoading({ onClose }: { onClose: () => void }) {
 
 export default function Hero() {
   const [desktopOpen, setDesktopOpen] = useState(false);
-  const avatarReference = useRef<AvatarHandle>(null);
+  const [portraitFailed, setPortraitFailed] = useState(false);
   const desktopButtonReference = useRef<HTMLButtonElement>(null);
   const closeDesktop = () => {
-    avatarReference.current?.finishEntry();
     setDesktopOpen(false);
     requestAnimationFrame(() => desktopButtonReference.current?.focus());
   };
   const openDesktop = () => {
     void import('@/components/macos/MacOSDesktop');
-    if (avatarReference.current) avatarReference.current.enterDesktop();
-    else setDesktopOpen(true);
+    setDesktopOpen(true);
   };
 
   return (
@@ -65,7 +60,9 @@ export default function Hero() {
       id='about'
       className='relative mx-auto max-w-6xl px-5 pb-16 pt-32 sm:px-8 lg:pb-24 lg:pt-44'
     >
-      <div className='grid items-center gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-12'>
+      <div
+        className={`grid items-center gap-10 lg:gap-12 ${portraitFailed ? '' : 'lg:grid-cols-[1.2fr_1fr]'}`}
+      >
         <div>
           <p className='mb-5 font-mono text-xs tracking-wide text-muted-foreground'>
             {profile.name} <span className='mx-2 text-violet-400'>/</span> Odesa, Ukraine
@@ -97,25 +94,18 @@ export default function Hero() {
           </div>
         </div>
         <div className='min-w-0'>
-          <div className='relative flex min-h-[400px] items-center justify-center'>
-            <Suspense
-              fallback={
-                <img
-                  src={avatarAssets.poster}
-                  alt='Maksym with his laptop'
-                  className='aspect-square w-full max-w-[400px] object-contain p-3'
-                />
-              }
-            >
-              <Avatar3D
-                desktopOpen={desktopOpen}
-                ref={avatarReference}
-                onEnterDesktop={() => setDesktopOpen(true)}
-                onCancelDesktop={closeDesktop}
-              />
-            </Suspense>
-          </div>
-          <div className='mt-4 text-center'>
+          {!portraitFailed && (
+            <img
+              src='/portrait.webp'
+              alt='Maksym with his laptop'
+              width={960}
+              height={960}
+              fetchPriority='high'
+              onError={() => setPortraitFailed(true)}
+              className='mx-auto aspect-square w-full max-w-[440px] object-contain'
+            />
+          )}
+          <div className={portraitFailed ? '' : 'mt-4 text-center'}>
             <button
               type='button'
               ref={desktopButtonReference}
@@ -131,10 +121,7 @@ export default function Hero() {
       </div>
       {desktopOpen && (
         <Suspense fallback={<DesktopLoading onClose={closeDesktop} />}>
-          <MacOSDesktop
-            onClose={closeDesktop}
-            onReady={() => avatarReference.current?.finishEntry()}
-          />
+          <MacOSDesktop onClose={closeDesktop} />
         </Suspense>
       )}
       <a
